@@ -28,4 +28,5 @@ The following features are planned for addition in later updates to the plugin:
 Special thanks to the following plugin authors, whose work was an invaluable resource:
 
 AnomalyTea's [Horse Inspector](https://github.com/AnomalyTea/Horse-Inspector) - From whom I drew much inspiration on how to design this plugin.
+
 Soiyeruda's [Better Horses](https://www.spigotmc.org/resources/better-horses.2477/) - Whose attribute determination formula I used in this plugin.
