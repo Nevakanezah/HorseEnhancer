@@ -1,0 +1,25 @@
+#---------------------------------------------------------------------------------
+# FTFY Configuration file
+# Version 1.0 for MC 1.12.2
+# 
+# FTFY written by Nevakanezah
+#---------------------------------------------------------------------------------
+
+# Tools
+
+# Set the tool used to geld stallions
+gelding-tool: shears
+
+# Set the tool used to inspect horse statistics
+inspection-tool: watch
+
+# Breeding
+
+# Upper boundary by which child stats are skewed, as a numerical percentage between -1 and 1
+childskew-upper: 0.05
+
+# Lower boundary by which child stats are skewed, as a numerical percentage between -1 and 1
+childskew-lower: -0.1
+
+# Male-Female ratio for horse population, from 0-1. A lower value makes males less common
+gender-ratio: 0.125

@@ -1,0 +1,11 @@
+name: HorseEnhancer
+main: com.nevakanezah.horseenhancer.HorseEnhancerPlugin
+version: 1.0
+api-version: 1.12.2
+commands:
+  horseenhancer:
+    description: Reload the plugin without restarting the server.
+    usage: /horseenhancer reload
+  he:
+    description: Reload the plugin without restarting the server.
+    usage: /he reload
