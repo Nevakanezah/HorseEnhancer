@@ -89,12 +89,12 @@ public class HorseData implements java.io.Serializable {
 		if(fatherID == null)
 			this.fatherName = ChatColor.BLUE + "Unknown";
 		else
-			this.fatherName = ((fatherName = father.getCustomName()) != null) ? father.getCustomName() : ChatColor.BLUE + "Unknown";
+			this.fatherName = ((fatherName = father.getCustomName()) != null) ? father.getCustomName() : "" + father.getUniqueId();
 			
 		if(motherID == null)
 			this.motherName = ChatColor.BLUE + "Unknown";
 		else
-			this.motherName = ((motherName = mother.getCustomName()) != null) ? mother.getCustomName() : ChatColor.BLUE + "Unknown";
+			this.motherName = ((motherName = mother.getCustomName()) != null) ? mother.getCustomName() : "" + mother.getUniqueId();
 		
 		this.setType(child.getType());
 	}
@@ -186,12 +186,10 @@ public class HorseData implements java.io.Serializable {
 		UUID pMother = partner.getMotherID();
 		UUID partnerID = partner.getUniqueID();
 
-		if(partnerID.equals(fatherID) || partnerID.equals(motherID))
-			return false;
-		
-		if(pFather == null || !pFather.equals(uniqueID))
-			if(pMother == null || !pMother.equals(uniqueID))
-				return false;
+		if(!partnerID.equals(fatherID) && !partnerID.equals(motherID))
+			if(pFather == null || !pFather.equals(uniqueID))
+				if(pMother == null || !pMother.equals(uniqueID))
+					return false;
 		
 		return true;
 	}

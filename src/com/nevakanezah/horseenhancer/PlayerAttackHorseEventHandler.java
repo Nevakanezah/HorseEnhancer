@@ -12,7 +12,9 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Llama;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Tameable;
+import org.bukkit.entity.Vehicle;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -35,20 +37,32 @@ public class PlayerAttackHorseEventHandler implements Listener {
 	// Provide various functionality when right-clicking horses with certain items
 	@EventHandler
 	public void onDamageHorseEvent(EntityDamageByEntityEvent event) {
+		if(event.isCancelled())
+			return;
+		if(!(event.getEntity() instanceof AbstractHorse) && !(event.getEntity() instanceof Vehicle))
+			return;
+	    if(!(event.getDamager() instanceof Player) && !(event.getDamager() instanceof Projectile))
+	      return;
 		
-		// Only catch interactions with horses
+	    // Cancel friendly fire on your own mount
+		if(event.getCause().equals(DamageCause.PROJECTILE))
+		{
+			Player shooter = (Player)((Projectile)event.getDamager()).getShooter();
+			if(event.getEntity().getPassengers().contains(shooter))
+			{
+				event.setDamage(0);
+				return;
+			}
+		}
+		
+		// Pigs get out
 		if(!(event.getEntity() instanceof AbstractHorse))
 			return;
-		
-	    // Only catch player attacks
-	    if(!(event.getDamager() instanceof Player && event.getCause().equals(DamageCause.ENTITY_ATTACK))) {
-	      return;
-	    }
-	    
-	    // Skip horses with riders, mostly for skeleton horses. 
+	    if(!(event.getCause().equals(DamageCause.ENTITY_ATTACK)))
+	    	return;
 	    if(!event.getEntity().isEmpty())
 	    	return;
-		
+
 		// Only catch interactions with configured interaction items
 		HashMap<String, Material> items = new HashMap<>();
 		Player player = (Player) event.getDamager();
@@ -68,6 +82,7 @@ public class PlayerAttackHorseEventHandler implements Listener {
 			return;
 		}
 		
+		// Register tamed horses upon inspection
 		AbstractHorse horse = (AbstractHorse)event.getEntity();
 		HorseData horseData = horseList.get(horse.getUniqueId());
 		if(horseData == null){
@@ -87,7 +102,14 @@ public class PlayerAttackHorseEventHandler implements Listener {
 			// Cancel the triggering event
 			event.setCancelled(true);
 			
-			if(horse.getOwner().getUniqueId().equals(event.getDamager().getUniqueId())){
+			// Cancel gelding for untamed, registered horses like foals
+			if(!((Tameable)event.getEntity()).isTamed()){
+				player.sendMessage(ChatColor.RED + "You can't do that to a wild horse!");
+				return;
+			}
+			
+			if(horse.getOwner().getUniqueId().equals(event.getDamager().getUniqueId()) 
+				|| horse.getOwner().getName().equals(event.getDamager().getName()) ){
 				if(horseData.geld()) {
 					player.sendMessage(ChatColor.GREEN + "Successfully gelded " + horseName + "!");
 					player.getWorld().playSound(player.getLocation(), Sound.ENTITY_SHEEP_SHEAR, 1, 1);
@@ -126,16 +148,17 @@ public class PlayerAttackHorseEventHandler implements Listener {
 			String sire = "" + ChatColor.GREEN + horseData.getFatherName();
 			String dam = "" + ChatColor.GREEN + horseData.getMotherName();
 			
+			msg.add(ChatColor.DARK_PURPLE + "-------");
 			msg.add(ChatColor.DARK_PURPLE + "Stats for " + gender + ChatColor.DARK_PURPLE + ": " + horseName);
 			msg.add(ChatColor.DARK_PURPLE + "Tamer: " + tamer);
 			msg.add(ChatColor.DARK_PURPLE + "Sire: " + sire);
 			msg.add(ChatColor.DARK_PURPLE + "Dam: " + dam);
-			msg.add(ChatColor.DARK_PURPLE + "-------");
 			msg.add(ChatColor.DARK_PURPLE + "Health: " + health);
 			msg.add(ChatColor.DARK_PURPLE + "Speed: " + speed);
 			msg.add(ChatColor.DARK_PURPLE + "Jump: " + jump);
 			if(strength != null)
 				msg.add(ChatColor.DARK_PURPLE + "Strength: " + strength);  
+			msg.add(ChatColor.DARK_PURPLE + "-------");
 			
 		    // Send message to player
 		    for (String m : msg) {

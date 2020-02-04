@@ -1,11 +1,14 @@
 package com.nevakanezah.horseenhancer;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import com.nevakanezah.horseenhancer.util.StorableHashMap;
 
 import net.md_5.bungee.api.ChatColor;
 
@@ -27,35 +30,57 @@ public class CommandHandler implements CommandExecutor {
 			return true;
 		}
 		
-		if(args.length == 0 )
-		{
-			// If issued by player, send info message
-			if(sender instanceof Player)
-			{
-				((Player) sender).sendMessage(ChatColor.DARK_PURPLE + "HorseEnhancer version 1.0 by Nevakanezah");
-				((Player) sender).sendMessage(ChatColor.DARK_PURPLE + "For Minecraft 1.12.2");
-				((Player) sender).sendMessage(ChatColor.DARK_PURPLE + "Aliases: /horseenhancer, /he");
+		if(args.length == 0 || args == null)
+			return showUsage((Player)sender);
+
+		if(sender instanceof Player) {
+			boolean result = false;
+			
+			switch(args[0]) {
+				case "reload":
+					result = pluginReload((Player)sender);
+					break;
+				case "list":
+					StorableHashMap<UUID, HorseData> horseList;
+					horseList = plugin.getHorses();
+					result = showList((Player)sender, horseList);
+					break;
+				default:
+					result = showUsage((Player)sender);
 			}
 			
-			return true;
-		}
-		
-		if(args.length >= 1 && args[0].contentEquals("reload"))
-		{
-			ArrayList<String> msg = plugin.loadConfig();
-			
-			// If issued by player, send success message
-			if(sender instanceof Player)
-			{
-				for(String m : msg) {
-					((Player) sender).sendMessage(ChatColor.GREEN + m);
-				}
-			}
-			
-			return true;
+			return result;
 		}
 		
 		return false;
+	}
+	
+	private boolean showUsage(Player sender) {
+		sender.sendMessage(ChatColor.DARK_PURPLE + "HorseEnhancer version 1.0 by Nevakanezah");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "For Minecraft 1.12.2");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "Aliases:" + ChatColor.GREEN +" /horseenhancer, /he");
+		return true;
+	}
+	
+	private boolean pluginReload(Player sender) {
+		ArrayList<String> msg = plugin.loadConfig();
+		for(String m : msg) {
+			sender.sendMessage(ChatColor.GREEN + m);
+		}
+		return true;
+	}
+	
+	private boolean showList(Player sender, StorableHashMap<UUID, HorseData> horseList) {
+		if(horseList.isEmpty()) {
+			sender.sendMessage(ChatColor.DARK_PURPLE + "There are no registered horses.");
+			return true;
+		} else {
+			sender.sendMessage(ChatColor.DARK_PURPLE + "There are currently [" + horseList.size() + "] registered horses");
+			sender.sendMessage(ChatColor.DARK_PURPLE + "---");
+			horseList.forEach((k,v) -> sender.sendMessage(ChatColor.DARK_PURPLE + "[" + k + "]\n"));
+			return true;
+		}
+
 	}
 
 }

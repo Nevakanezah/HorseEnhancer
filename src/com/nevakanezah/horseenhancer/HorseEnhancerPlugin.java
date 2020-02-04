@@ -62,11 +62,8 @@ public class HorseEnhancerPlugin extends JavaPlugin {
 	    
 	    getLogger().log(Level.INFO, "Successfully loaded [" + horses.size() +"] horses.");
 	    
-		getServer().getPluginManager().registerEvents(new HorseBreedEventHandler(this), this);
 		getServer().getPluginManager().registerEvents(new PlayerAttackHorseEventHandler(this), this);
-		getServer().getPluginManager().registerEvents(new HorseBreedEventHandler(this), this);
 		getServer().getPluginManager().registerEvents(new HorseTameEventHandler(this), this);
-		getServer().getPluginManager().registerEvents(new FriendlyFireHandler(this), this);
 		getServer().getPluginManager().registerEvents(new HorseDeathEventHandler(this), this);
 		getServer().getPluginManager().registerEvents(new HorseSpawnEventHandler(this), this);
 		
@@ -138,7 +135,7 @@ public class HorseEnhancerPlugin extends JavaPlugin {
 	private void checkInvalid(UUID id, ArrayList<UUID> invalidHorses)
 	{
 		
-		if(this.getServer().getEntity(id) == null)
+		if(this.getServer().getEntity(id) == null || this.getServer().getEntity(id).isDead())
 			invalidHorses.add(id);
 	}
 }
