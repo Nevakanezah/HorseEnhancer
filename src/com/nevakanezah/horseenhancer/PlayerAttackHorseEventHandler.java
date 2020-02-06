@@ -126,6 +126,19 @@ public class PlayerAttackHorseEventHandler implements Listener {
 				player.sendMessage(ChatColor.RED + "That's not your horse!");
 		}
 		
+		if(!player.isOp()) {
+			switch(plugin.getConfig().getString("enable-inspector").toLowerCase()) {
+			case "false":
+				return;
+			case "restrict":
+				if(!(horse.getOwner().equals(player))) {
+					event.setCancelled(true);
+					player.sendMessage(ChatColor.RED + "That's not your horse!");
+					return;
+				}
+			}
+		}
+			
 		// When holding the inspection tool, report horse stats to the player
 		if(heldItem.equals(items.get("inspection-tool")) && !((Player)event.getDamager()).isSneaking()) {
 			ArrayList<String> msg = new ArrayList<String>();
@@ -138,7 +151,7 @@ public class PlayerAttackHorseEventHandler implements Listener {
 			String jumpFmt = new DecimalFormat("#.###").format(horse.getJumpStrength());
 			boolean ownerless = horse.getOwner() == null;
 			
-			String health = "" + ChatColor.GREEN + horse.getHealth() + "/30";
+			String health = "" + ChatColor.GREEN + (int)horse.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue() + "/30";
 			String speed = "" + ChatColor.GREEN + speedFmt + "/0.3375";
 			String jump = "" + ChatColor.GREEN + jumpFmt + "/1.0";
 			String strength = (horse instanceof Llama) ? "" + ChatColor.GREEN + ((Llama)horse).getStrength() + "/5" : null;
@@ -147,17 +160,20 @@ public class PlayerAttackHorseEventHandler implements Listener {
 			String gender = "" + ChatColor.GREEN + horseData.getGenderName();
 			String sire = "" + ChatColor.GREEN + horseData.getFatherName();
 			String dam = "" + ChatColor.GREEN + horseData.getMotherName();
-			
+
 			msg.add(ChatColor.DARK_PURPLE + "-------");
 			msg.add(ChatColor.DARK_PURPLE + "Stats for " + gender + ChatColor.DARK_PURPLE + ": " + horseName);
 			msg.add(ChatColor.DARK_PURPLE + "Tamer: " + tamer);
 			msg.add(ChatColor.DARK_PURPLE + "Sire: " + sire);
 			msg.add(ChatColor.DARK_PURPLE + "Dam: " + dam);
-			msg.add(ChatColor.DARK_PURPLE + "Health: " + health);
-			msg.add(ChatColor.DARK_PURPLE + "Speed: " + speed);
-			msg.add(ChatColor.DARK_PURPLE + "Jump: " + jump);
-			if(strength != null)
-				msg.add(ChatColor.DARK_PURPLE + "Strength: " + strength);  
+				if(plugin.getConfig().getBoolean("enable-inspector-attributes") || player.isOp())
+				{
+				msg.add(ChatColor.DARK_PURPLE + "Health: " + health);
+				msg.add(ChatColor.DARK_PURPLE + "Speed: " + speed);
+				msg.add(ChatColor.DARK_PURPLE + "Jump: " + jump);
+				if(strength != null)
+					msg.add(ChatColor.DARK_PURPLE + "Strength: " + strength);  
+			}
 			msg.add(ChatColor.DARK_PURPLE + "-------");
 			
 		    // Send message to player

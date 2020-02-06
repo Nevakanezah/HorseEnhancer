@@ -185,13 +185,20 @@ public class HorseData implements java.io.Serializable {
 		UUID pFather = partner.getFatherID();
 		UUID pMother = partner.getMotherID();
 		UUID partnerID = partner.getUniqueID();
+		boolean inbred = false;
 
-		if(!partnerID.equals(fatherID) && !partnerID.equals(motherID))
-			if(pFather == null || !pFather.equals(uniqueID))
-				if(pMother == null || !pMother.equals(uniqueID))
-					return false;
+		if(partnerID.equals(fatherID) || partnerID.equals(motherID)) // Are they your parent?
+			inbred = true;
+		if(pFather != null && pFather.equals(uniqueID)) // Are you theirs?
+			inbred = true;
+		if(pMother != null && pMother.equals(uniqueID))
+			inbred = true;
+		if(pMother != null && motherID != null) // Direct siblings
+			if(pFather != null && fatherID != null)
+				if(pMother.equals(motherID) && pFather.equals(fatherID))
+					inbred = true;
 		
-		return true;
+		return inbred;
 	}
 	
 	// GETTERS AND SETTERS

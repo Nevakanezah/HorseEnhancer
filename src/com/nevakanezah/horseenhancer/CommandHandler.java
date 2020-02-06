@@ -56,9 +56,15 @@ public class CommandHandler implements CommandExecutor {
 	}
 	
 	private boolean showUsage(Player sender) {
-		sender.sendMessage(ChatColor.DARK_PURPLE + "HorseEnhancer version 1.0 by Nevakanezah");
-		sender.sendMessage(ChatColor.DARK_PURPLE + "For Minecraft 1.12.2");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "HorseEnhancer version 0.0.2a by "
+				+ ChatColor.BLUE + "Nev"
+				+ ChatColor.DARK_GREEN + "a"
+				+ ChatColor.GOLD + "ka"
+				+ ChatColor.DARK_RED + "nez"
+				+ ChatColor.LIGHT_PURPLE + "ah");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "For Minecraft " + ChatColor.GREEN + "1.12.2");
 		sender.sendMessage(ChatColor.DARK_PURPLE + "Aliases:" + ChatColor.GREEN +" /horseenhancer, /he");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "Use " + ChatColor.GREEN +" /horseenhancer help" + ChatColor.DARK_PURPLE + " for a list of commands.");
 		return true;
 	}
 	

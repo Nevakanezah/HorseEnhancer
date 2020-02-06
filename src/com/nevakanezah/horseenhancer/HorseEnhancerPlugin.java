@@ -86,6 +86,8 @@ public class HorseEnhancerPlugin extends JavaPlugin {
 		configNames.add("childskew-upper");
 		configNames.add("childskew-lower");
 		configNames.add("gender-ratio");
+		configNames.add("enable-inspector");
+		configNames.add("enable-inspector-attributes");
 		
 		for(String item : configNames) {
 			if(!this.getConfig().isSet(item)) {
