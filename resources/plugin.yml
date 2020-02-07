@@ -5,7 +5,5 @@ api-version: 1.12.2
 commands:
   horseenhancer:
     description: Reload the plugin without restarting the server.
-    usage: /horseenhancer reload
-  he:
-    description: Reload the plugin without restarting the server.
-    usage: /he reload
+    usage: /<command> reload
+    aliases: [he]
