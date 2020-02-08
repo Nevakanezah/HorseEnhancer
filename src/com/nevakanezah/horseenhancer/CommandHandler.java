@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
 import com.nevakanezah.horseenhancer.util.StorableHashMap;
@@ -23,7 +24,6 @@ public class CommandHandler implements CommandExecutor {
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
-		// Require OP permission to run reload
 		if(sender instanceof Player && !((Player) sender).isOp())
 		{
 			((Player) sender).sendMessage(ChatColor.RED + "Error: Requires op permission!");
@@ -31,62 +31,199 @@ public class CommandHandler implements CommandExecutor {
 		}
 		
 		if(args.length == 0 || args == null)
-			return showUsage((Player)sender);
+			return showUsage(sender);
 
-		if(sender instanceof Player) {
-			boolean result = false;
-			
-			switch(args[0]) {
-				case "reload":
-					result = pluginReload((Player)sender);
-					break;
-				case "list":
-					StorableHashMap<UUID, HorseData> horseList;
-					horseList = plugin.getHorses();
-					result = showList((Player)sender, horseList);
-					break;
-				default:
-					result = showUsage((Player)sender);
-			}
-			
-			return result;
+		boolean result = false;
+		
+		switch(args[0].toLowerCase()) {
+			case "reload":
+				result = pluginReload(sender);
+				break;
+			case "list":
+				StorableHashMap<UUID, HorseData> horseList;
+				horseList = plugin.getHorses();
+				result = showList(sender, horseList);
+				break;
+			case "help":
+				result = showHelp(sender);
+				break;
+			case "genderratio":
+				result = genderRatio(sender, args);
+				break;
+			case "statskew":
+				result = statSkew(sender, args);
+				break;
+			default:
+				result = showUsage(sender);
 		}
 		
-		return false;
+		return result;
 	}
 	
-	private boolean showUsage(Player sender) {
-		sender.sendMessage(ChatColor.DARK_PURPLE + "HorseEnhancer version 0.0.2a by "
-				+ ChatColor.BLUE + "Nev"
-				+ ChatColor.DARK_GREEN + "a"
-				+ ChatColor.GOLD + "ka"
-				+ ChatColor.DARK_RED + "nez"
-				+ ChatColor.LIGHT_PURPLE + "ah");
-		sender.sendMessage(ChatColor.DARK_PURPLE + "For Minecraft " + ChatColor.GREEN + "1.12.2");
-		sender.sendMessage(ChatColor.DARK_PURPLE + "Aliases:" + ChatColor.GREEN +" /horseenhancer, /he");
-		sender.sendMessage(ChatColor.DARK_PURPLE + "Use " + ChatColor.GREEN +" /horseenhancer help" + ChatColor.DARK_PURPLE + " for a list of commands.");
+	private boolean showUsage(CommandSender sender) {
+		if(sender instanceof Player) {
+			sender.sendMessage(ChatColor.DARK_PURPLE + "HorseEnhancer version 0.0.2a by "
+					+ ChatColor.BLUE + "Nev"
+					+ ChatColor.DARK_GREEN + "a"
+					+ ChatColor.GOLD + "ka"
+					+ ChatColor.DARK_RED + "nez"
+					+ ChatColor.LIGHT_PURPLE + "ah");
+			sender.sendMessage(ChatColor.DARK_PURPLE + "For Minecraft " + ChatColor.GREEN + "1.12.2");
+			sender.sendMessage(ChatColor.DARK_PURPLE + "Aliases:" + ChatColor.GREEN +" /horseenhancer, /he");
+			sender.sendMessage(ChatColor.DARK_PURPLE + "Use " + ChatColor.GREEN +" /horseenhancer help" + ChatColor.DARK_PURPLE + " for a list of commands.");
+		} 
+		if(sender instanceof ConsoleCommandSender) {
+			sender.sendMessage("HorseEnhancer version 0.0.2a by Nevakanezah for MC 1.12.2.");
+			sender.sendMessage("Aliases: horseenhancer, he");
+			sender.sendMessage("Use: 'horseenhancer help' to see a list of commands.");
+		}
 		return true;
 	}
 	
-	private boolean pluginReload(Player sender) {
+	private boolean pluginReload(CommandSender sender) {
 		ArrayList<String> msg = plugin.loadConfig();
 		for(String m : msg) {
-			sender.sendMessage(ChatColor.GREEN + m);
+			if(sender instanceof Player)
+				sender.sendMessage(ChatColor.GREEN + m);
+			if(sender instanceof ConsoleCommandSender)
+				sender.sendMessage(m);
 		}
 		return true;
 	}
 	
-	private boolean showList(Player sender, StorableHashMap<UUID, HorseData> horseList) {
-		if(horseList.isEmpty()) {
-			sender.sendMessage(ChatColor.DARK_PURPLE + "There are no registered horses.");
-			return true;
-		} else {
-			sender.sendMessage(ChatColor.DARK_PURPLE + "There are currently [" + horseList.size() + "] registered horses");
-			sender.sendMessage(ChatColor.DARK_PURPLE + "---");
-			horseList.forEach((k,v) -> sender.sendMessage(ChatColor.DARK_PURPLE + "[" + k + "]\n"));
-			return true;
+	private boolean showList(CommandSender sender, StorableHashMap<UUID, HorseData> horseList) {
+		if(sender instanceof Player) {
+			if(horseList.isEmpty()) {
+				sender.sendMessage(ChatColor.DARK_PURPLE + "There are no registered horses.");
+				return true;
+			} else {
+				sender.sendMessage(ChatColor.DARK_PURPLE + "There are currently [" + horseList.size() + "] registered horses");
+				sender.sendMessage(ChatColor.DARK_PURPLE + "---");
+				horseList.forEach((k,v) -> sender.sendMessage(ChatColor.DARK_PURPLE + "[" + k + "]\n"));
+			}
 		}
-
+		if(sender instanceof ConsoleCommandSender) {
+			sender.sendMessage("There are currently [" + horseList.size() + "] registered horses");
+			sender.sendMessage("---");
+			horseList.forEach((k,v) -> sender.sendMessage("[" + k + "]\n"));
+		}
+		return true;
+	}
+	
+	private boolean showHelp(CommandSender sender) {
+		if(sender instanceof ConsoleCommandSender) {
+			sender.sendMessage("HorseEnhancer commands:");
+			sender.sendMessage("/he help\tShow this dialog");
+			sender.sendMessage("/he reload\tReload plugin configuration");
+			sender.sendMessage("/he list\tList all registered horse IDs");
+			sender.sendMessage("/he genderRatio [0.0 - 1.0]");
+			sender.sendMessage("\tChange the percentage of horses born male.");
+			sender.sendMessage("/he statSkew [min] [max]");
+			sender.sendMessage("\tChange the degree by which foal stats can be better"
+					+ "\n\t\t\tor worse than their parents.");
+			sender.sendMessage("\tValues must be between -1.0 and 1.0.");
+		}
+		if(sender instanceof Player) {
+			sender.sendMessage(ChatColor.DARK_PURPLE + "HorseEnhancer commands:");
+			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he help" + ChatColor.YELLOW + " Show this dialog");
+			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he reload" + ChatColor.YELLOW + " Reload plugin configuration");
+			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he list" + ChatColor.YELLOW + " List all registered horse IDs");
+			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he genderRatio [0.0 - 1.0]" + ChatColor.YELLOW + " Change the percentage of horses born male.");
+			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he statSkew [-1.0] [1.0]" + ChatColor.YELLOW + " Range by which foal stats can differ from their parents.");
+			sender.sendMessage(ChatColor.DARK_PURPLE + "---");
+		}
+		return true;
+	}
+	
+	private boolean genderRatio(CommandSender sender, String[] args) {
+		boolean result = true;
+		double value = plugin.getConfig().getDouble("gender-ratio");
+		
+		if(args.length < 2)
+			result = false;
+		
+		if(result) {
+			try{
+				value = Double.parseDouble(args[1]);
+			} catch(NumberFormatException e) {
+				result = false;
+			}
+		}
+		
+		if(result)
+			if(value < 0.0 || value > 1.0)
+				result = false;
+		
+		if(!result) {
+			if(sender instanceof Player)
+				sender.sendMessage(ChatColor.DARK_PURPLE + "Usage: " + ChatColor.DARK_PURPLE + "/he genderratio [0.0 - 1.0]");
+			if(sender instanceof ConsoleCommandSender)
+				sender.sendMessage("Usage: /he genderRatio [0.0 - 1.0]");
+		}
+		else {
+			plugin.getConfig().set("gender-ratio", value);
+			plugin.saveConfig();
+			
+			if(sender instanceof Player)
+				sender.sendMessage(ChatColor.DARK_PURPLE + "Gender ratio is now [" + ChatColor.GREEN + value + ChatColor.DARK_PURPLE + "]");
+			if(sender instanceof ConsoleCommandSender)
+				sender.sendMessage("Gender ratio is now [" + value + "]");
+		}
+		
+		return result;
 	}
 
+	private boolean statSkew(CommandSender sender, String[] args) {
+		boolean result = true;
+		double low = plugin.getConfig().getDouble("childskew-lower");
+		double high = plugin.getConfig().getDouble("childskew-upper");
+		
+		if(args.length < 3)
+			result = false;
+		
+		if(result) {
+			try{
+				low = Double.parseDouble(args[1]);
+				high = Double.parseDouble(args[2]);
+			} catch(NumberFormatException e) {
+				result = false;
+			}
+		}
+		
+		if(result)
+			if(high < low)
+			{
+				Double tmp = low;
+				low = high;
+				high = tmp;
+			}
+		
+		if(result) {
+			if(low < -1.0)
+				low = -1.0;
+			if(high > 1.0)
+				high = 1.0;
+		}
+		
+		if(!result) {
+			if(sender instanceof Player)
+				sender.sendMessage(ChatColor.DARK_PURPLE + "Usage: " + ChatColor.DARK_PURPLE + "/he statSkew [min] [max]");
+			if(sender instanceof ConsoleCommandSender)
+				sender.sendMessage("Usage: /he statSkew [min] [max]");
+		}
+		else {
+			plugin.getConfig().set("childskew-lower", low);
+			plugin.getConfig().set("childskew-upper", high);
+			plugin.saveConfig();
+			
+			if(sender instanceof Player)
+				sender.sendMessage(ChatColor.DARK_PURPLE + "Skew range is now [" 
+						+ ChatColor.GREEN + low + ChatColor.DARK_PURPLE 
+						+ " - " + ChatColor.GREEN + high + ChatColor.DARK_PURPLE + "]");
+			if(sender instanceof ConsoleCommandSender)
+				sender.sendMessage("Skew range is now [" + low + " - " + high + "]");
+		}
+		
+		return result;
+	}
 }

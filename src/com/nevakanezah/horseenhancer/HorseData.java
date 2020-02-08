@@ -7,6 +7,7 @@ import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.entity.EntityBreedEvent;
+import com.nevakanezah.horseenhancer.util.NameConverter;
 
 import net.md_5.bungee.api.ChatColor;
 
@@ -15,6 +16,7 @@ public class HorseData implements java.io.Serializable {
 	private static final long serialVersionUID = -5063530984002853922L;
 	
 	private UUID uniqueID;
+	private String horseID;
 	
 	private UUID fatherID;
 	private String fatherName;
@@ -83,18 +85,26 @@ public class HorseData implements java.io.Serializable {
 	private void initialize(Entity child, Entity father, Entity mother) {	
 		
 		this.setUniqueID((child != null) ? child.getUniqueId() : null);
+		generateHorseID((int)child.getUniqueId().getLeastSignificantBits());
 		this.fatherID = (father != null) ? father.getUniqueId() : null;
 		this.motherID = (mother != null) ? mother.getUniqueId() : null;
+		StringBuffer parentName = new StringBuffer();
 		
 		if(fatherID == null)
 			this.fatherName = ChatColor.BLUE + "Unknown";
-		else
-			this.fatherName = ((fatherName = father.getCustomName()) != null) ? father.getCustomName() : "" + father.getUniqueId();
+		else {
+			NameConverter.uint2quint(parentName, Math.abs((int)father.getUniqueId().getLeastSignificantBits()), '-');
+			this.fatherName = ((fatherName = father.getCustomName()) != null) ? father.getCustomName() : "#" + ChatColor.BLUE + parentName;
+			parentName.delete(0, parentName.length());
+		}
 			
 		if(motherID == null)
 			this.motherName = ChatColor.BLUE + "Unknown";
-		else
-			this.motherName = ((motherName = mother.getCustomName()) != null) ? mother.getCustomName() : "" + mother.getUniqueId();
+		else {
+			NameConverter.uint2quint(parentName, Math.abs((int)mother.getUniqueId().getLeastSignificantBits()), '-');
+			this.motherName = ((motherName = mother.getCustomName()) != null) ? mother.getCustomName() : "#" + ChatColor.BLUE + parentName;
+			parentName.delete(0, parentName.length());
+		}
 		
 		this.setType(child.getType());
 	}
@@ -203,6 +213,23 @@ public class HorseData implements java.io.Serializable {
 	
 	// GETTERS AND SETTERS
 	
+	public String getHorseID() {
+		if(this.horseID == null)
+			generateHorseID((int)uniqueID.getLeastSignificantBits());
+		return horseID;
+	}
+
+	public void setHorseID(String horseID) {
+		this.horseID = horseID;
+	}
+	
+	public void generateHorseID(int horseID) {
+		StringBuffer name = new StringBuffer();
+		NameConverter.uint2quint(name, Math.abs(horseID), '-');
+		
+		this.horseID = name.toString();
+	}
+
 	public UUID getFatherID() {
 		return fatherID;
 	}

@@ -94,7 +94,7 @@ public class PlayerAttackHorseEventHandler implements Listener {
 				player.sendMessage(ChatColor.RED + "Failed to register horse!");
 		}
 		
-		String horseName = (horse.getCustomName() == null) ? ChatColor.GREEN + "" + horse.getUniqueId() : ChatColor.GREEN + horse.getCustomName();
+		String horseName = (horse.getCustomName() == null) ? ChatColor.BLUE + "#" + horseData.getHorseID() : ChatColor.GREEN + horse.getCustomName();
 		
 		// When holding the gelding tool, attempt gelding
 		if(heldItem.equals(items.get("gelding-tool")) && ((Player)event.getDamager()).isSneaking()) {
