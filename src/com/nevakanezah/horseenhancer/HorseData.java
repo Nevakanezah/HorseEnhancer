@@ -98,7 +98,11 @@ public class HorseData implements java.io.Serializable {
 			this.fatherName = ChatColor.BLUE + UNKNOWN;
 		else {
 			NameConverter.uint2quint(parentName, Math.abs((int)father.getUniqueId().getLeastSignificantBits()), '-');
-			this.fatherName = ((fatherName = father.getCustomName()) != null) ? father.getCustomName() : "#" + ChatColor.BLUE + parentName;
+			
+			String fatherNametag = ChatColor.BLUE + "#" + parentName;
+			if(father.getCustomName() != null)
+				fatherNametag = ChatColor.GREEN + father.getCustomName() + " " + fatherNametag;
+			this.fatherName = fatherNametag;
 			parentName.delete(0, parentName.length());
 		}
 			
@@ -106,7 +110,11 @@ public class HorseData implements java.io.Serializable {
 			this.motherName = ChatColor.BLUE + UNKNOWN;
 		else {
 			NameConverter.uint2quint(parentName, Math.abs((int)mother.getUniqueId().getLeastSignificantBits()), '-');
-			this.motherName = ((motherName = mother.getCustomName()) != null) ? mother.getCustomName() : "#" + ChatColor.BLUE + parentName;
+
+			String motherNametag = ChatColor.BLUE + "#" + parentName;
+			if(mother.getCustomName() != null)
+				motherNametag = ChatColor.GREEN + mother.getCustomName() + " " + motherNametag;
+			this.motherName = motherNametag;
 			parentName.delete(0, parentName.length());
 		}
 		

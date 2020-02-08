@@ -1,12 +1,17 @@
 package com.nevakanezah.horseenhancer;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.AbstractHorse;
+import org.bukkit.entity.Llama;
 import org.bukkit.entity.Player;
 
 import com.nevakanezah.horseenhancer.util.StorableHashMap;
@@ -16,9 +21,11 @@ import net.md_5.bungee.api.ChatColor;
 public class CommandHandler implements CommandExecutor {
 
 	private HorseEnhancerPlugin plugin;
+	private StorableHashMap<UUID, HorseData> horseList;
 	
 	public CommandHandler(HorseEnhancerPlugin plugin) {
 		this.plugin = plugin;
+		horseList = plugin.getHorses();
 	}
 	
 	@Override
@@ -52,6 +59,9 @@ public class CommandHandler implements CommandExecutor {
 				break;
 			case "statskew":
 				result = statSkew(sender, args);
+				break;
+			case "inspect":
+				result = inspectHorse(sender, args);
 				break;
 			default:
 				result = showUsage(sender);
@@ -98,7 +108,7 @@ public class CommandHandler implements CommandExecutor {
 			} else {
 				sender.sendMessage(ChatColor.DARK_PURPLE + "There are currently [" + horseList.size() + "] registered horses");
 				sender.sendMessage(ChatColor.DARK_PURPLE + "---");
-				horseList.forEach((k,v) -> sender.sendMessage(ChatColor.DARK_PURPLE + "[" + k + "]\n"));
+				horseList.forEach((k,v) -> sender.sendMessage(listMessage(k,v)));
 			}
 			return true;
 		}
@@ -109,6 +119,20 @@ public class CommandHandler implements CommandExecutor {
 			return true;
 		}
 		return false;
+	}
+	
+	private String listMessage(UUID id, HorseData horseData) {
+		String msg = ChatColor.BLUE + "#" + horseData.getHorseID();
+		AbstractHorse horse = ((AbstractHorse)Bukkit.getEntity(id));
+		
+		if(horse.getCustomName() != null)
+			msg += " " + ChatColor.GREEN + horse.getCustomName();
+		if(horse.getOwner() != null)
+			msg += " " + ChatColor.DARK_PURPLE + horse.getOwner().getName();
+		else
+			msg += " " + ChatColor.DARK_PURPLE + "Untamed";
+		
+		return msg;
 	}
 	
 	private boolean showHelp(CommandSender sender) {
@@ -131,6 +155,7 @@ public class CommandHandler implements CommandExecutor {
 			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he list" + ChatColor.YELLOW + " List all registered horse IDs");
 			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he genderRatio [0.0 - 1.0]" + ChatColor.YELLOW + " Change the percentage of horses born male.");
 			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he statSkew [-1.0] [1.0]" + ChatColor.YELLOW + " Range by which foal stats can differ from their parents.");
+			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he inspect [horseID|horseCustomName]" + ChatColor.YELLOW + " Show inspection details for the specified horse.");
 			sender.sendMessage(ChatColor.DARK_PURPLE + "---");
 		}
 		return true;
@@ -207,5 +232,67 @@ public class CommandHandler implements CommandExecutor {
 		}
 		
 		return valid;
+	}
+	
+	private boolean inspectHorse(CommandSender sender, String[] args) {
+		if(sender instanceof ConsoleCommandSender)
+			sender.sendMessage("This command is only available to players.");
+		
+		if(args.length < 2)
+			sender.sendMessage(ChatColor.DARK_PURPLE + "Usage: /horseenhancer inspect [horseID|horseCustomName]");
+			
+		String searchParam = args[1].startsWith("#") ? args[1].substring(1, args[1].length()): args[1];
+		
+		horseList.forEach((k,v) -> reportMatchingHorses(k, v, (Player)sender, searchParam));
+		return true;
+	}
+	
+	private void reportMatchingHorses(UUID id, HorseData horseData, Player player, String searchParam) {
+		AbstractHorse horse = (AbstractHorse)Bukkit.getEntity(id);
+		
+		if(!horse.getCustomName().equals(searchParam) && !horseData.getHorseID().equals(searchParam))
+			return;
+		
+		ArrayList<String> msg = new ArrayList<>();
+		
+		// Collect & format horse data
+		String speedFmt = new DecimalFormat("#.####").format(horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getBaseValue());
+		String jumpFmt = new DecimalFormat("#.###").format(horse.getJumpStrength());
+		boolean ownerless = horse.getOwner() == null;
+		
+		String health = "" + ChatColor.GREEN + (int)horse.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue() + "/30";
+		String speed = "" + ChatColor.GREEN + speedFmt + "/0.3375";
+		String jump = "" + ChatColor.GREEN + jumpFmt + "/1.0";
+		String strength = (horse instanceof Llama) ? "" + ChatColor.GREEN + ((Llama)horse).getStrength() + "/5" : null;
+		String tamer = "" + (ownerless ? ChatColor.BLUE + "Wild" : ChatColor.GREEN + horse.getOwner().getName());
+		tamer = "" + (horse.getAge() < 0 ? ChatColor.BLUE + "Foal" : tamer);
+		String gender = "" + ChatColor.GREEN + horseData.getGenderName();
+		String sire = "" + ChatColor.GREEN + horseData.getFatherName();
+		String dam = "" + ChatColor.GREEN + horseData.getMotherName();
+		
+		String horseName = ChatColor.BLUE + "#" + horseData.getHorseID();
+		if(horse.getCustomName() != null)
+			horseName = ChatColor.GREEN + horse.getCustomName() + " " + horseName;
+		
+
+		msg.add(ChatColor.DARK_PURPLE + "-------");
+		msg.add(ChatColor.DARK_PURPLE + "Stats for " + gender + ChatColor.DARK_PURPLE + ": " + horseName);
+		msg.add(ChatColor.DARK_PURPLE + "Tamer: " + tamer);
+		msg.add(ChatColor.DARK_PURPLE + "Sire: " + sire);
+		msg.add(ChatColor.DARK_PURPLE + "Dam: " + dam);
+			if(plugin.getConfig().getBoolean("enable-inspector-attributes") || player.isOp())
+			{
+			msg.add(ChatColor.DARK_PURPLE + "Health: " + health);
+			msg.add(ChatColor.DARK_PURPLE + "Speed: " + speed);
+			msg.add(ChatColor.DARK_PURPLE + "Jump: " + jump);
+			if(strength != null)
+				msg.add(ChatColor.DARK_PURPLE + "Strength: " + strength);  
+		}
+		msg.add(ChatColor.DARK_PURPLE + "-------");
+		
+	    // Send message to player
+	    for (String m : msg) {
+	      player.sendMessage(m);
+	    }
 	}
 }

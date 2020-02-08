@@ -46,7 +46,7 @@ public class PlayerAttackHorseEventHandler implements Listener {
 		
 		if(!(eventEntity instanceof AbstractHorse) 
 			&& !(eventEntity instanceof Vehicle)
-			&& !(event.getDamager() instanceof Player) || !(event.getDamager() instanceof Projectile))
+			&& !(event.getDamager() instanceof Player || event.getDamager() instanceof Projectile))
 	      return;
 	    
 	    if(event.getCause().equals(DamageCause.PROJECTILE))
@@ -169,9 +169,14 @@ public class PlayerAttackHorseEventHandler implements Listener {
 		String gender = "" + ChatColor.GREEN + horseData.getGenderName();
 		String sire = "" + ChatColor.GREEN + horseData.getFatherName();
 		String dam = "" + ChatColor.GREEN + horseData.getMotherName();
+		
+		String horseName = ChatColor.BLUE + "#" + horseData.getHorseID();
+		if(horse.getCustomName() != null)
+			horseName = ChatColor.GREEN + horse.getCustomName() + " " + horseName;
+		
 
 		msg.add(ChatColor.DARK_PURPLE + "-------");
-		msg.add(ChatColor.DARK_PURPLE + "Stats for " + gender + ChatColor.DARK_PURPLE + ": " + horseData.getHorseID());
+		msg.add(ChatColor.DARK_PURPLE + "Stats for " + gender + ChatColor.DARK_PURPLE + ": " + horseName);
 		msg.add(ChatColor.DARK_PURPLE + "Tamer: " + tamer);
 		msg.add(ChatColor.DARK_PURPLE + "Sire: " + sire);
 		msg.add(ChatColor.DARK_PURPLE + "Dam: " + dam);
