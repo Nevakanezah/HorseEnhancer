@@ -23,18 +23,17 @@ public class HorseDeathEventHandler implements Listener {
 	
 	// We want to write horsedata to file semi-frequently, to prevent large data losses & minimize memory usage.
 	// For now, it's written on server shutdown, and when a registered horse dies.
-	@EventHandler
+	@EventHandler(ignoreCancelled = true)
 	public void onHorseDeathEvent(EntityDeathEvent event) {
-		if(event.getEntity() instanceof AbstractHorse)
-			if(horseList.containsKey(event.getEntity().getUniqueId()))
+		if(event.getEntity() instanceof AbstractHorse && horseList.containsKey(event.getEntity().getUniqueId()))
+		{
+			horseList.remove(event.getEntity().getUniqueId());
+			try { horseList.saveToFile(); } 
+			catch (IOException e)
 			{
-				horseList.remove(event.getEntity().getUniqueId());
-			    try { horseList.saveToFile(); } 
-			    catch (IOException e)
-			    {
-			    	plugin.getLogger().log(Level.WARNING, "Error: Failed to save horse data!", e);
-			    }
+				plugin.getLogger().log(Level.WARNING, "Error: Failed to save horse data!", e);
 			}
+		}
 	}
 
 }

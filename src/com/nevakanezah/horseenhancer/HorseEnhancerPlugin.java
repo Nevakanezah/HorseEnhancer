@@ -29,12 +29,14 @@ public class HorseEnhancerPlugin extends JavaPlugin {
 
 	@Override
 	public void onDisable() {
-		ArrayList<UUID> invalidHorses = new ArrayList<UUID>();
+		ArrayList<UUID> invalidHorses = new ArrayList<>();
 		
 		horses.forEach((k,v) -> checkInvalid(k,invalidHorses));
-		if(invalidHorses.size() > 0)
-			getLogger().log(Level.INFO, "Unloading [" + horses.size() +"] invalid horses.");
-		invalidHorses.forEach((k) -> horses.remove(k));
+		if(invalidHorses.isEmpty()) {
+			String msg = "Unloading [" + horses.size() +"] invalid horses.";
+			getLogger().log(Level.INFO, msg);
+		}
+		invalidHorses.forEach(k -> horses.remove(k));
 		
 	    try { horses.saveToFile(); } 
 	    catch (IOException e)
@@ -48,7 +50,7 @@ public class HorseEnhancerPlugin extends JavaPlugin {
 		saveDefaultConfig();
 		loadConfig();
 		
-		try { horses = new StorableHashMap<UUID, HorseData>(this.getDataFolder(), "Horses"); }
+		try { horses = new StorableHashMap<>(this.getDataFolder(), "Horses"); }
 		catch (IOException e)
 		{
 			getLogger().log(Level.WARNING, "Error: Failed to create horse save file: ", e);
@@ -60,7 +62,8 @@ public class HorseEnhancerPlugin extends JavaPlugin {
 	        getLogger().log(Level.WARNING, "Error: Failed to load horse data: ", e);
 	    }
 	    
-	    getLogger().log(Level.INFO, "Successfully loaded [" + horses.size() +"] horses.");
+	    String msg = "Successfully loaded [" + horses.size() +"] horses.";
+	    getLogger().log(Level.INFO, msg);
 	    
 		getServer().getPluginManager().registerEvents(new PlayerAttackHorseEventHandler(this), this);
 		getServer().getPluginManager().registerEvents(new HorseTameEventHandler(this), this);
@@ -108,7 +111,7 @@ public class HorseEnhancerPlugin extends JavaPlugin {
 		if(lower < -1.0)
 			this.getConfig().set("childskew-lower", Math.max( -1.0, lower));
 		
-		if(!(lower <= upper)) {
+		if(lower > upper) {
 			if(lower <= 0)
 			   upper = lower;
 			else

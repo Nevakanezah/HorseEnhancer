@@ -12,8 +12,12 @@ import org.bukkit.util.StringUtil;
 
 public class TabComplete implements TabCompleter {
 	
-	private final String[] COMMANDS = {
+	private static final String[] COMMANDS = {
 			"reload",
+			"list",
+			"help",
+			"genderRatio",
+			"statSkew",
 	};
 
 	@Override

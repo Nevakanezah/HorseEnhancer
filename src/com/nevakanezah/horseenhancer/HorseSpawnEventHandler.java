@@ -27,6 +27,10 @@ import net.md_5.bungee.api.ChatColor;
 public class HorseSpawnEventHandler implements Listener {
 	private final HorseEnhancerPlugin plugin;
 	private StorableHashMap<UUID, HorseData> horseList;
+	
+	static final String MOVE_SPEED = "GENERIC_MOVEMENT_SPEED";
+	static final String MAX_HEALTH = "GENERIC_MAX_HEALTH";
+	static final String JUMP_STRENGTH = "JUMP_STRENGTH";
 
 	public HorseSpawnEventHandler(HorseEnhancerPlugin plugin) {
 		this.plugin = plugin;
@@ -34,10 +38,8 @@ public class HorseSpawnEventHandler implements Listener {
 	}
 	
 	// Register the parent information from breeding events; remaining data will be generated when and if a horse spawns.
-	@EventHandler
+	@EventHandler(ignoreCancelled = true)
 	public void onHorseBreed(EntityBreedEvent event) {
-		if(event.isCancelled())
-			return;
 		if(!(event.getEntity() instanceof AbstractHorse))
 			return;
 		if(!((event).getBreeder() instanceof Player))
@@ -59,10 +61,8 @@ public class HorseSpawnEventHandler implements Listener {
 	}
 
 	// Register horses that spawn tame. Includes skeleton traps and admin-spawned horses.
-	@EventHandler
+	@EventHandler(ignoreCancelled = true)
 	public void onHorseSpawn(CreatureSpawnEvent event) {
-		if(event.isCancelled())
-			return;
 		if(!(event.getEntity() instanceof AbstractHorse))
 			return;
 		if(!(event.getSpawnReason().equals(SpawnReason.BREEDING))
@@ -101,7 +101,7 @@ public class HorseSpawnEventHandler implements Listener {
 	 * @param childData The data for the child that we will operate on
 	 * @return The modified childData
 	 */
-	private HorseData handleBreedingEvent(CreatureSpawnEvent event, HorseData childData) {
+	private HorseData handleBreedingEvent(CreatureSpawnEvent event, HorseData childData) {		
 		// Declare the horses & data containers involved
 		AbstractHorse child = (AbstractHorse) event.getEntity();
 		AbstractHorse father = (AbstractHorse) Bukkit.getEntity(childData.getFatherID());
@@ -111,13 +111,6 @@ public class HorseSpawnEventHandler implements Listener {
 		
 		// Only horses of opposite gender can breed. If I can figure out how to override target selection in love mode, I will.
 		if(!fatherData.genderCompatible(motherData) && child instanceof AbstractHorse){
-			// Refund the items used in breeding, and cancel the event
-			// Deprecated for future implementation.
-//						Location loc = child.getLocation();
-//						ItemStack breedItem = event.getBredWith();
-//						breedItem.setAmount(2);
-//						Item dropitem = loc.getWorld().dropItem(loc.clone().add(0.5, 1.2, 0.5), breedItem);
-//						dropitem.setVelocity(new Vector());
 			event.setCancelled(true);
 			return null;
 			}
@@ -154,12 +147,10 @@ public class HorseSpawnEventHandler implements Listener {
 		
 		//Apply modified stats to the child
 		child.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue(
-				Math.max( 0.1125, Math.min( 0.3375, getAttributeFromParents(father, mother, "GENERIC_MOVEMENT_SPEED" ))));
-		
+				Math.max( 0.1125, Math.min( 0.3375, getAttributeFromParents(father, mother, MOVE_SPEED ))));
 		child.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(
-				Math.max( 15, Math.min( 30, getAttributeFromParents(father, mother, "GENERIC_MAX_HEALTH" ))));
-		
-		child.setJumpStrength( Math.max( 0.4, Math.min( 1.0, getAttributeFromParents(father, mother, "JUMP_STRENGTH" ) )));
+				Math.max( 15, Math.min( 30, getAttributeFromParents(father, mother, MAX_HEALTH ))));
+		child.setJumpStrength( Math.max( 0.4, Math.min( 1.0, getAttributeFromParents(father, mother, JUMP_STRENGTH ) )));
 		
 		// Coat colouration handling
 		if(child.getType().equals(EntityType.HORSE)) {
@@ -178,7 +169,9 @@ public class HorseSpawnEventHandler implements Listener {
 	 * @return The colour decided for the child
 	 */
 	private Horse.Color horseColourSelector(Horse.Color father, Horse.Color mother){
-		int i, min, max;
+		int i;
+		int min;
+		int max;
 		
 		// We're going to use the colour's hashcode to figure out likely child colours
 		List<Color> ha = Arrays.asList(Horse.Color.values());
@@ -190,9 +183,9 @@ public class HorseSpawnEventHandler implements Listener {
 		max = Math.max(ha.indexOf(father), ha.indexOf(mother));
 		
 		// Determine the range of likely colours, then skew it by -1, 0, or 1
-		i = (int) Math.max( 0, Math.min( 6
+		i = Math.max( 0, Math.min( 6
 				, ThreadLocalRandom.current().nextInt(min, max+1)
-				+ (int)(Math.round(Math.random() * 2) - 1)));
+				+ (int)((ThreadLocalRandom.current().nextDouble(0, 2) * 2) - 1)));
 		
 		return ha.get(i);
 	}
@@ -214,12 +207,12 @@ public class HorseSpawnEventHandler implements Listener {
 		double bias = Math.random(); 
 		double result = 0;
 		
-		if(attr.contentEquals("GENERIC_MOVEMENT_SPEED")
-			|| attr.contentEquals("GENERIC_MAX_HEALTH")) {
+		if(attr.contentEquals(MOVE_SPEED)
+			|| attr.contentEquals(MAX_HEALTH)) {
 			result = (father.getAttribute(Attribute.valueOf(attr)).getBaseValue() * bias)
-			+ ((mother.getAttribute(Attribute.valueOf(attr)).getBaseValue() * (1-bias)));
+			+ (mother.getAttribute(Attribute.valueOf(attr)).getBaseValue() * (1-bias));
 		}
-		else if(attr.contentEquals("JUMP_STRENGTH")) {
+		else if(attr.contentEquals(JUMP_STRENGTH)) {
 			result = (father.getJumpStrength() * bias)
 			+ (mother.getJumpStrength() * (1-bias));
 		}
@@ -229,8 +222,8 @@ public class HorseSpawnEventHandler implements Listener {
 		result += skew;
 		
 		// Health is rounded to the nearest 0.5
-		if(attr.contentEquals("GENERIC_MAX_HEALTH"))
-			result = Math.round(result * 2)/2;
+		if(attr.contentEquals(MAX_HEALTH))
+			result = Math.round(result * 2)/2.0;
 		
 		return result;
 	}

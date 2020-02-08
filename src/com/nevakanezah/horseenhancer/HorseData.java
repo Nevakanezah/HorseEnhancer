@@ -15,6 +15,8 @@ public class HorseData implements java.io.Serializable {
 
 	private static final long serialVersionUID = -5063530984002853922L;
 	
+	private static final String UNKNOWN = "Unknown";
+	
 	private UUID uniqueID;
 	private String horseID;
 	
@@ -83,15 +85,17 @@ public class HorseData implements java.io.Serializable {
 	}
 	
 	private void initialize(Entity child, Entity father, Entity mother) {	
+		if(child == null)
+			return;
 		
-		this.setUniqueID((child != null) ? child.getUniqueId() : null);
+		this.setUniqueID(child.getUniqueId());
 		generateHorseID((int)child.getUniqueId().getLeastSignificantBits());
 		this.fatherID = (father != null) ? father.getUniqueId() : null;
 		this.motherID = (mother != null) ? mother.getUniqueId() : null;
-		StringBuffer parentName = new StringBuffer();
+		StringBuilder parentName = new StringBuilder();
 		
 		if(fatherID == null)
-			this.fatherName = ChatColor.BLUE + "Unknown";
+			this.fatherName = ChatColor.BLUE + UNKNOWN;
 		else {
 			NameConverter.uint2quint(parentName, Math.abs((int)father.getUniqueId().getLeastSignificantBits()), '-');
 			this.fatherName = ((fatherName = father.getCustomName()) != null) ? father.getCustomName() : "#" + ChatColor.BLUE + parentName;
@@ -99,7 +103,7 @@ public class HorseData implements java.io.Serializable {
 		}
 			
 		if(motherID == null)
-			this.motherName = ChatColor.BLUE + "Unknown";
+			this.motherName = ChatColor.BLUE + UNKNOWN;
 		else {
 			NameConverter.uint2quint(parentName, Math.abs((int)mother.getUniqueId().getLeastSignificantBits()), '-');
 			this.motherName = ((motherName = mother.getCustomName()) != null) ? mother.getCustomName() : "#" + ChatColor.BLUE + parentName;
@@ -113,7 +117,6 @@ public class HorseData implements java.io.Serializable {
 	
 	public boolean geld() {
 		if(!(gender.equals(Gender.STALLION) || gender.equals(Gender.JACK) || gender.equals(Gender.HERDSIRE))) return false;
-		if(gender == null) return false;
 		
 		this.gender = Gender.GELDING;
 		return true;
@@ -156,17 +159,17 @@ public class HorseData implements java.io.Serializable {
 		
 		switch(gender) {
 		case STALLION:
-			return (mateGender.equals(Gender.MARE) || mateGender.equals(Gender.JENNY)) ? true : false;
+			return (mateGender.equals(Gender.MARE) || mateGender.equals(Gender.JENNY));
 		case MARE:
-			return (mateGender.equals(Gender.STALLION) || mateGender.equals(Gender.JACK)) ? true : false;
+			return (mateGender.equals(Gender.STALLION) || mateGender.equals(Gender.JACK));
 		case JENNY:
-			return (mateGender.equals(Gender.STALLION) || mateGender.equals(Gender.JACK)) ? true : false;
+			return (mateGender.equals(Gender.STALLION) || mateGender.equals(Gender.JACK));
 		case JACK:
-			return (mateGender.equals(Gender.MARE) || mateGender.equals(Gender.JENNY)) ? true : false;
+			return (mateGender.equals(Gender.MARE) || mateGender.equals(Gender.JENNY));
 		case DAM:
-			return (mateGender.equals(Gender.HERDSIRE)) ? true : false;
+			return (mateGender.equals(Gender.HERDSIRE));
 		case HERDSIRE:
-			return (mateGender.equals(Gender.DAM)) ? true : false;
+			return (mateGender.equals(Gender.DAM));
 		default:
 			return false;
 		}
@@ -203,9 +206,10 @@ public class HorseData implements java.io.Serializable {
 			inbred = true;
 		if(pMother != null && pMother.equals(uniqueID))
 			inbred = true;
-		if(pMother != null && motherID != null) // Direct siblings
-			if(pFather != null && fatherID != null)
-				if(pMother.equals(motherID) && pFather.equals(fatherID))
+		
+		 // Direct siblings
+		if(motherID != null && fatherID != null
+			&& motherID.equals(pMother) && fatherID.equals(pFather))
 					inbred = true;
 		
 		return inbred;
@@ -224,7 +228,7 @@ public class HorseData implements java.io.Serializable {
 	}
 	
 	public void generateHorseID(int horseID) {
-		StringBuffer name = new StringBuffer();
+		StringBuilder name = new StringBuilder();
 		NameConverter.uint2quint(name, Math.abs(horseID), '-');
 		
 		this.horseID = name.toString();
@@ -292,11 +296,11 @@ public class HorseData implements java.io.Serializable {
 	
 	public void setMother(Entity mother) {
 		this.motherID = mother.getUniqueId();
-		this.motherName = mother.getCustomName() != null ? mother.getCustomName() : ChatColor.BLUE + "Unknown"; 
+		this.motherName = mother.getCustomName() != null ? mother.getCustomName() : ChatColor.BLUE + UNKNOWN; 
 	}
 	
 	public void setFather(Entity father) {
 		this.fatherID = father.getUniqueId();
-		this.fatherName = father.getCustomName() != null ? father.getCustomName() : ChatColor.BLUE + "Unknown";
+		this.fatherName = father.getCustomName() != null ? father.getCustomName() : ChatColor.BLUE + UNKNOWN;
 	}
 }

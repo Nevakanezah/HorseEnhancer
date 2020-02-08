@@ -30,7 +30,7 @@ public class CommandHandler implements CommandExecutor {
 			return true;
 		}
 		
-		if(args.length == 0 || args == null)
+		if(args.length == 0)
 			return showUsage(sender);
 
 		boolean result = false;
@@ -95,19 +95,20 @@ public class CommandHandler implements CommandExecutor {
 		if(sender instanceof Player) {
 			if(horseList.isEmpty()) {
 				sender.sendMessage(ChatColor.DARK_PURPLE + "There are no registered horses.");
-				return true;
 			} else {
 				sender.sendMessage(ChatColor.DARK_PURPLE + "There are currently [" + horseList.size() + "] registered horses");
 				sender.sendMessage(ChatColor.DARK_PURPLE + "---");
 				horseList.forEach((k,v) -> sender.sendMessage(ChatColor.DARK_PURPLE + "[" + k + "]\n"));
 			}
+			return true;
 		}
-		if(sender instanceof ConsoleCommandSender) {
+		else if(sender instanceof ConsoleCommandSender) {
 			sender.sendMessage("There are currently [" + horseList.size() + "] registered horses");
 			sender.sendMessage("---");
 			horseList.forEach((k,v) -> sender.sendMessage("[" + k + "]\n"));
+			return true;
 		}
-		return true;
+		return false;
 	}
 	
 	private boolean showHelp(CommandSender sender) {
@@ -136,25 +137,16 @@ public class CommandHandler implements CommandExecutor {
 	}
 	
 	private boolean genderRatio(CommandSender sender, String[] args) {
-		boolean result = true;
+		boolean valid = true;
 		double value = plugin.getConfig().getDouble("gender-ratio");
 		
-		if(args.length < 2)
-			result = false;
-		
-		if(result) {
-			try{
-				value = Double.parseDouble(args[1]);
-			} catch(NumberFormatException e) {
-				result = false;
-			}
+		try{
+			value = Double.parseDouble(args[1]);
+		} catch(NumberFormatException e) {
+			valid = false;
 		}
 		
-		if(result)
-			if(value < 0.0 || value > 1.0)
-				result = false;
-		
-		if(!result) {
+		if(!valid || args.length < 2 || value < 0.0 || value > 1.0) {
 			if(sender instanceof Player)
 				sender.sendMessage(ChatColor.DARK_PURPLE + "Usage: " + ChatColor.DARK_PURPLE + "/he genderratio [0.0 - 1.0]");
 			if(sender instanceof ConsoleCommandSender)
@@ -170,42 +162,32 @@ public class CommandHandler implements CommandExecutor {
 				sender.sendMessage("Gender ratio is now [" + value + "]");
 		}
 		
-		return result;
+		return valid;
 	}
 
 	private boolean statSkew(CommandSender sender, String[] args) {
-		boolean result = true;
+		boolean valid = true;
 		double low = plugin.getConfig().getDouble("childskew-lower");
 		double high = plugin.getConfig().getDouble("childskew-upper");
 		
-		if(args.length < 3)
-			result = false;
-		
-		if(result) {
-			try{
-				low = Double.parseDouble(args[1]);
-				high = Double.parseDouble(args[2]);
-			} catch(NumberFormatException e) {
-				result = false;
-			}
+		try{
+			low = Double.parseDouble(args[1]);
+			high = Double.parseDouble(args[2]);
+		} catch(NumberFormatException e) {
+			valid = false;
 		}
 		
-		if(result)
-			if(high < low)
-			{
-				Double tmp = low;
-				low = high;
-				high = tmp;
-			}
-		
-		if(result) {
-			if(low < -1.0)
-				low = -1.0;
-			if(high > 1.0)
-				high = 1.0;
+		if(high < low)
+		{
+			Double tmp = low;
+			low = high;
+			high = tmp;
 		}
+	
+		low = low < -1.0 ? -1.0 : low;
+		high = high > 1.0 ? 1.0 : high;
 		
-		if(!result) {
+		if(!valid || args.length < 3) {
 			if(sender instanceof Player)
 				sender.sendMessage(ChatColor.DARK_PURPLE + "Usage: " + ChatColor.DARK_PURPLE + "/he statSkew [min] [max]");
 			if(sender instanceof ConsoleCommandSender)
@@ -224,6 +206,6 @@ public class CommandHandler implements CommandExecutor {
 				sender.sendMessage("Skew range is now [" + low + " - " + high + "]");
 		}
 		
-		return result;
+		return valid;
 	}
 }

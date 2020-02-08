@@ -7,8 +7,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityTameEvent;
 
-//import net.md_5.bungee.api.ChatColor;
-
 public class HorseTameEventHandler implements Listener {
 
 	private final HorseEnhancerPlugin plugin;
@@ -32,10 +30,5 @@ public class HorseTameEventHandler implements Listener {
 		HorseData horseData = new HorseData(event.getEntity(), null, null, plugin.getConfig().getDouble("gender-ratio"));
 		
 		plugin.getHorses().put(horse.getUniqueId(), horseData);
-		
-//		if(plugin.getHorses().containsKey(horse.getUniqueId()))
-//			((Player) event.getOwner()).sendMessage(ChatColor.GREEN + "Horse Registered!");
-//		else
-//			((Player) event.getOwner()).sendMessage(ChatColor.RED + "Failed to register horse!");
 	}
 }
