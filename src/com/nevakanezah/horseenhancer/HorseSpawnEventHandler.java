@@ -185,7 +185,7 @@ public class HorseSpawnEventHandler implements Listener {
 		// Determine the range of likely colours, then skew it by -1, 0, or 1
 		i = Math.max( 0, Math.min( 6
 				, ThreadLocalRandom.current().nextInt(min, max+1)
-				+ (int)((ThreadLocalRandom.current().nextDouble(0, 2) * 2) - 1)));
+				+ (int)(ThreadLocalRandom.current().nextDouble(-1, 1))));
 		
 		return ha.get(i);
 	}
