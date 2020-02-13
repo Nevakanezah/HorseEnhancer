@@ -34,3 +34,5 @@ CLESurrealism, for offering both her StorableHashMap utility and her ever-friend
 AnomalyTea's [Horse Inspector](https://github.com/AnomalyTea/Horse-Inspector) - From whom I drew much inspiration on how to design this plugin.
 
 Soiyeruda's [Better Horses](https://www.spigotmc.org/resources/better-horses.2477/) - Whose attribute determination formula I used in this plugin.
+
+The human-readable [ProQuints IDs](https://arxiv.org/html/0901.4016) project on Arxiv; whose work was adapted for use in generating horseIDs, and whose authors I've avoided naming for fear of impinging upon their software license.
