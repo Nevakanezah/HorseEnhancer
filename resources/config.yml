@@ -16,6 +16,9 @@ enable-inspector: true
 ## When inspecting a horse, players see attribute info like speed & jump height.
 enable-inspector-attributes: true
 
+## Whether you can shoot an animal you're currently riding. Mostly applies to pigs.
+enable-equicide-protection: true
+
 # Tools
 
 gelding-tool: shears

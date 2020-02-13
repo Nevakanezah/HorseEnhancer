@@ -4,7 +4,6 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.UUID;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.command.Command;
@@ -12,6 +11,8 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.AbstractHorse;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Llama;
 import org.bukkit.entity.Player;
 
@@ -24,7 +25,7 @@ public class CommandHandler implements CommandExecutor {
 	private HorseEnhancerPlugin plugin;
 	private StorableHashMap<UUID, HorseData> horseList;
 	
-	private final String onlyForPlayersMessage = "This command is only available to players.";
+	private static final String PLAYERS_ONLY_MESSAGE = "This command is only available to players.";
 	
 	public CommandHandler(HorseEnhancerPlugin plugin) {
 		this.plugin = plugin;
@@ -72,6 +73,9 @@ public class CommandHandler implements CommandExecutor {
 				break;
 			case "summon":
 				result = horseSummon(sender, args);
+				break;
+			case "change":
+				result = horseUpdate(sender, args);
 				break;
 			default:
 				result = showUsage(sender);
@@ -170,6 +174,8 @@ public class CommandHandler implements CommandExecutor {
 			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he inspect [horseID|horseCustomName]" + ChatColor.YELLOW + " Show inspection details for the specified horse.");
 			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he tp [horseID|horseName]" + ChatColor.YELLOW + " Teleport yourself to the specified horse.");
 			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he tphere [horseID|horseName]" + ChatColor.YELLOW + " Teleport the specified horse to your location.");
+			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he summon [args]" + ChatColor.YELLOW + " Summon horse with specified attributes. Use '/he summon help' for more info.");
+			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he change [args]" + ChatColor.YELLOW + " Modify an existing horse's attributes. Use '/he change help' for more info.");
 			sender.sendMessage(ChatColor.DARK_PURPLE + "---");
 		}
 		return true;
@@ -250,22 +256,34 @@ public class CommandHandler implements CommandExecutor {
 	
 	private boolean inspectHorse(CommandSender sender, String[] args) {
 		if(sender instanceof ConsoleCommandSender)
-			sender.sendMessage(onlyForPlayersMessage);
+			sender.sendMessage(PLAYERS_ONLY_MESSAGE);
 		
-		if(args.length < 2)
+		if(args.length < 2) {
 			sender.sendMessage(ChatColor.DARK_PURPLE + "Usage: /horseenhancer inspect [horseID|horseCustomName]");
+			return false;
+		}
 		
 		String searchParam = args[1].startsWith("#") ? args[1].replace("#", "") : args[1];
 		
-		horseList.forEach((k,v) -> reportMatchingHorses(k, v, (Player)sender, searchParam));
+		ArrayList<String> msg = new ArrayList<>();
+		horseList.forEach((k,v) -> msg.addAll(reportMatchingHorses(k, v, (Player)sender, searchParam)));
+		
+		if(msg.isEmpty())
+			msg.add(ChatColor.DARK_RED + "No horses were found matching [" + ChatColor.DARK_GREEN + searchParam + ChatColor.DARK_RED + "]");
+		
+		for(String m : msg) {
+			sender.sendMessage(m);
+		}
 		return true;
 	}
 	
-	private void reportMatchingHorses(UUID id, HorseData horseData, Player player, String searchParam) {
+	private ArrayList<String> reportMatchingHorses(UUID id, HorseData horseData, Player player, String searchParam) {
 		AbstractHorse horse = (AbstractHorse)Bukkit.getEntity(id);
 		
-		if(!horseData.getHorseID().equalsIgnoreCase(searchParam) && (horse.getCustomName() == null || !horse.getCustomName().equalsIgnoreCase(searchParam)))
-			return;
+		if(!horseData.getHorseID().equalsIgnoreCase(searchParam) 
+				&& (horse.getCustomName() == null 
+					|| (!horse.getCustomName().equalsIgnoreCase(searchParam) && !horse.getCustomName().equalsIgnoreCase("#" + searchParam))))
+			return new ArrayList<>();
 		
 		ArrayList<String> msg = new ArrayList<>();
 		
@@ -304,17 +322,14 @@ public class CommandHandler implements CommandExecutor {
 		}
 		msg.add(ChatColor.DARK_PURPLE + "-------");
 		
-	    // Send message to player
-	    for (String m : msg) {
-	      player.sendMessage(m);
-	    }
+		return msg;
 	}
 	
 	private boolean horseTeleport(CommandSender sender, String[] args) {
 		boolean result = true;
 		
 		if(sender instanceof ConsoleCommandSender) {
-			sender.sendMessage(onlyForPlayersMessage);
+			sender.sendMessage(PLAYERS_ONLY_MESSAGE);
 			return false;
 		}
 		
@@ -333,7 +348,9 @@ public class CommandHandler implements CommandExecutor {
 			AbstractHorse horse = (AbstractHorse)Bukkit.getEntity(horseData.getUniqueID());
 			String name = horse.getCustomName();
 			
-			if(horseData.getHorseID().equalsIgnoreCase(searchParam) || (name != null && name.equalsIgnoreCase(searchParam)))
+			if(horseData.getHorseID().equalsIgnoreCase(searchParam) 
+					|| (name != null && name.equalsIgnoreCase(searchParam)) 
+					|| (name != null && name.equalsIgnoreCase("#" + searchParam)))
 				matches.add(horseData.getUniqueID());
 		}
 		
@@ -357,6 +374,193 @@ public class CommandHandler implements CommandExecutor {
 	}
 	
 	private boolean horseSummon(CommandSender sender, String[] args) {
-		throw new NotImplementedException();
+		boolean result = true;
+		if(sender instanceof ConsoleCommandSender) {
+			sender.sendMessage(PLAYERS_ONLY_MESSAGE);
+			return false;
+		}
+		if(args.length < 2) {
+			sender.sendMessage(ChatColor.RED + "Horse gender required! Use '/he summon help' for more information.");
+			return false;
+		}
+		
+		AbstractHorse horse;
+		EntityType type;
+		String gender = args[1];
+		String father = null;
+		String mother = null;
+		
+		switch(args[1].toLowerCase()) {
+			case "stallion":
+				type = EntityType.HORSE;
+				break;
+			case "mare":
+				type = EntityType.HORSE;
+				break;
+			case "gelding":
+				type = EntityType.HORSE;
+				break;
+			case "mule":
+				type = EntityType.MULE;
+				break;
+			case "jenny":
+				type = EntityType.DONKEY;
+				break;
+			case "jack":
+				type = EntityType.DONKEY;
+				break;
+			case "dam":
+				type = EntityType.LLAMA;
+				break;
+			case "herdsire":
+				type = EntityType.LLAMA;
+				break;
+			case "skeleton":
+				type = EntityType.SKELETON_HORSE;
+				gender = "UNDEAD";
+				break;
+			case "zombie":
+				type = EntityType.ZOMBIE_HORSE;
+				gender = "UNDEAD";
+				break;
+			case "help":
+				showSummonUsage(sender);
+				return true;
+			default:
+				sender.sendMessage(ChatColor.RED + "Invalid gender. Valid options include: Stallion, Mare, Gelding, Mule, Jenny, Jack, Dam, Herdsire, Skeleton, and Zombie.");
+				return false;
+		}
+		
+		horse = (AbstractHorse)((Entity)sender).getWorld().spawnEntity(((Entity)sender).getLocation(), type);
+		horse.setTamed(true);
+		horse.setAdult();
+		HorseData horseData = horseList.get(horse.getUniqueId());
+		
+		if(horseData == null)
+			horseData = new HorseData(horse, null, null, plugin.getConfig().getDouble("gender-ratio"));
+		
+		horseList.put(horse.getUniqueId(), horseData);
+		horseData.setGender(gender.toUpperCase());
+		
+		// If there's no more arguments, then we're done once the generic horse is spawned
+		if(args.length < 3) 
+			return true;
+		
+		for(int i = 1; i < args.length; i++) {
+			if(i == 2  && !args[i].startsWith("-"))
+				horse.setCustomName(args[i]);
+			
+			switch(args[i].toLowerCase()) {
+			case "-s":
+				try {
+					horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue(Double.parseDouble(args[i + 1]));
+				}
+				catch(NumberFormatException e) {
+					sender.sendMessage(ChatColor.RED + "Invalid speed value: " + args[i + 1]);
+					result = false;
+				}
+				break;
+			case "-j":
+				try {
+					horse.getAttribute(Attribute.HORSE_JUMP_STRENGTH).setBaseValue(Double.parseDouble(args[i + 1]));
+				}
+				catch(NumberFormatException e) {
+					sender.sendMessage(ChatColor.RED + "Invalid jump strength value: " + args[i + 1]);
+					result = false;
+				}
+				break;
+			case "-h":
+				try {
+					horse.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(Double.parseDouble(args[i + 1]));
+				}
+				catch(NumberFormatException e) {
+					sender.sendMessage(ChatColor.RED + "Invalid max health value: " + args[i + 1]);
+					result = false;
+				}
+				break;
+			case "-o":
+				try {
+					horse.setOwner(Bukkit.getPlayer(args[i + 1]));
+				}
+				catch(NullPointerException e) {
+					sender.sendMessage(ChatColor.RED + "Could not find owner [" + args[i + 1] + "], player must be online.");
+					result = false;
+				}
+				break;
+			case "-f":
+				try {
+					father = args[i + 1];
+				}
+				catch(NumberFormatException e) {
+					sender.sendMessage(ChatColor.RED + "Invalid father value: " + args[i + 1]);
+					result = false;
+				}
+				break;
+			case "-m":
+				try {
+					mother = args[i + 1];
+				}
+				catch(NumberFormatException e) {
+					sender.sendMessage(ChatColor.RED + "Invalid mother value: " + args[i + 1]);
+					result = false;
+				}
+				break;
+			default:
+				continue;
+			}
+		}
+		
+		if(father != null || mother != null) {
+			for(HorseData item : horseList.values()) {
+				AbstractHorse subject = (AbstractHorse)Bukkit.getEntity(item.getUniqueID());
+				String name = subject.getCustomName();
+				
+				if(father != null // if Father was provided, then check if one of the following is true:
+					&& (item.getHorseID().equalsIgnoreCase(father) // They provided exact horseID
+						|| (name != null && name.equalsIgnoreCase(father))  // They provided exact father name
+						|| (name != null && name.equalsIgnoreCase("#" + father)))) // They provided exact father name that begins with #
+					horseData.setFather(subject);
+				
+				if(mother != null
+					&& (item.getHorseID().equalsIgnoreCase(mother) 
+						|| (name != null && name.equalsIgnoreCase(mother)) 
+						|| (name != null && name.equalsIgnoreCase("#" + mother))))
+					horseData.setMother(subject);
+			}
+			if((father != null && horseData.getFatherID() == null)) {
+				sender.sendMessage(ChatColor.RED + "Error - Failed to set father: " + father);
+			}
+			if((mother != null && horseData.getMotherID() == null)) {
+				sender.sendMessage(ChatColor.RED + "Error - Failed to set mother: " + mother);
+			}
+		}
+		
+		return result;
+	}
+	
+	private void showSummonUsage(CommandSender sender) {
+		sender.sendMessage(ChatColor.DARK_PURPLE + "/he Summon - Summons a horse with specified attributes.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "Usage: " + ChatColor.YELLOW + "/he Summon <gender> [CustomName] [arguments]");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "Available arguments:");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "-s <Speed>" + ChatColor.YELLOW + "  Decimal value for horse speed.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "-j <Jump>" + ChatColor.YELLOW + "  Decimal value for horse jump strength.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "-h <Health>" + ChatColor.YELLOW + "  Decimal value for horse max HP.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "-o <Owner>" + ChatColor.YELLOW + "  Name of a player to become the horse's tamer.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "-f <Father>" + ChatColor.YELLOW + "  HorseID or customName of the horse's father.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "-m <Mother>" + ChatColor.YELLOW + "  HorseID or customName of the horse's mother.");
+	}
+	
+	private boolean horseUpdate(CommandSender sender, String[] args) {
+		boolean result = true;
+		if(sender instanceof ConsoleCommandSender) {
+			sender.sendMessage(PLAYERS_ONLY_MESSAGE);
+			return false;
+		}
+		if(args.length < 2) {
+			sender.sendMessage(ChatColor.RED + "You must specify a horse! Use '/he change help' for more information.");
+			return false;
+		}
+		
+		return result;
 	}
 }

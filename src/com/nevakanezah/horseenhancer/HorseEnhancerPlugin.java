@@ -91,6 +91,7 @@ public class HorseEnhancerPlugin extends JavaPlugin {
 		configNames.add("gender-ratio");
 		configNames.add("enable-inspector");
 		configNames.add("enable-inspector-attributes");
+		configNames.add("enable-equicide-protection");
 		
 		for(String item : configNames) {
 			if(!this.getConfig().isSet(item)) {

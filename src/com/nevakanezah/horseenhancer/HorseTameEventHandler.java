@@ -15,14 +15,10 @@ public class HorseTameEventHandler implements Listener {
 		this.plugin = plugin;
 	}
 
-	@EventHandler
+	@EventHandler(ignoreCancelled = true)
 	public void onHorseTame(EntityTameEvent event) {
-
-		if(event.isCancelled())
-			return;
-		if(!(event.getEntity() instanceof AbstractHorse && event.getOwner() instanceof Player))
-			return;
-		if(plugin.getHorses().containsKey(event.getEntity().getUniqueId()))
+		if(!(event.getEntity() instanceof AbstractHorse && event.getOwner() instanceof Player)
+				|| plugin.getHorses().containsKey(event.getEntity().getUniqueId()))
 			return;
 		
 		Entity horse = event.getEntity();

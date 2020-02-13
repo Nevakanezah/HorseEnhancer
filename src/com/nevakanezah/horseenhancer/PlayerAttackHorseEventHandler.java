@@ -49,7 +49,8 @@ public class PlayerAttackHorseEventHandler implements Listener {
 			&& !(event.getDamager() instanceof Player || event.getDamager() instanceof Projectile))
 	      return;
 	    
-	    if(event.getCause().equals(DamageCause.PROJECTILE))
+		boolean equicideProtection = plugin.getConfig().getBoolean("enable-equicide-protection");
+	    if(event.getCause().equals(DamageCause.PROJECTILE) && equicideProtection)
 	    	handleFriendlyFire(event);
 		
 		// Pigs get out. Also, no inspecting animals with riders.
@@ -123,6 +124,7 @@ public class PlayerAttackHorseEventHandler implements Listener {
 				player.getWorld().playSound(player.getLocation(), Sound.ENTITY_HORSE_DEATH, 0.3f, 1.3f);
 				player.getWorld().playSound(player.getLocation(), Sound.ENTITY_SHEEP_SHEAR, 1, 1);
 				short durability = player.getInventory().getItemInMainHand().getDurability();
+				durability++;
 				player.getInventory().getItemInMainHand().setDurability(durability);
 				player.playSound(player.getLocation(), Sound.ENTITY_SHEEP_SHEAR, 100, 80);
 			}

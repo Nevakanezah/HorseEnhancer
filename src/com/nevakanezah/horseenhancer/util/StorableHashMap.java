@@ -2,7 +2,6 @@ package com.nevakanezah.horseenhancer.util;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
@@ -24,9 +23,8 @@ public class StorableHashMap<K, V> extends HashMap<K, V> implements Serializable
 {
     private static final long serialVersionUID = -3535879180214628774L;
 
-    private transient final String extension = ".dat";
+    private static final transient String FILE_EXTENSION = ".dat";
 
-    private transient File parentFolder;
     private transient File saveFile;
 
     public StorableHashMap(File parentFolder, String fileName) throws IOException
@@ -55,13 +53,12 @@ public class StorableHashMap<K, V> extends HashMap<K, V> implements Serializable
 
     private void initialise(File parentFolder, String fileName) throws IOException
     {
-        this.parentFolder = parentFolder;
-        this.saveFile = new File(this.parentFolder, fileName + extension);
+        this.saveFile = new File(parentFolder, fileName + FILE_EXTENSION);
         
     }
 
     @SuppressWarnings("unchecked")
-    public void loadFromFile() throws FileNotFoundException, IOException, ClassNotFoundException
+    public void loadFromFile() throws IOException, ClassNotFoundException
     {
         if (saveFile.length() > 0)
         {
@@ -75,7 +72,7 @@ public class StorableHashMap<K, V> extends HashMap<K, V> implements Serializable
         }
     }
 
-    public void saveToFile() throws FileNotFoundException, IOException
+    public void saveToFile() throws IOException
     {
         try (FileOutputStream fileOut = new FileOutputStream(saveFile);
                 BukkitObjectOutputStream objectOut = new BukkitObjectOutputStream(fileOut))
