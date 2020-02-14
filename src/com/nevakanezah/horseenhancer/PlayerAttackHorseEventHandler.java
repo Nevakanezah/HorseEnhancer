@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
-
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
@@ -112,7 +111,7 @@ public class PlayerAttackHorseEventHandler implements Listener {
 	private void handleGelding(Player player, AbstractHorse horse, HorseData horseData) {
 		String horseName = horseData.getHorseID();
 		// Cancel gelding for untamed, registered horses like foals
-		if(!(horse.isTamed())){
+		if(!(horse.isTamed()) || horse.getOwner() == null){
 			player.sendMessage(ChatColor.RED + "You can't do that to a wild horse!");
 			return;
 		}
@@ -124,7 +123,8 @@ public class PlayerAttackHorseEventHandler implements Listener {
 				player.getWorld().playSound(player.getLocation(), Sound.ENTITY_HORSE_DEATH, 0.3f, 1.3f);
 				player.getWorld().playSound(player.getLocation(), Sound.ENTITY_SHEEP_SHEAR, 1, 1);
 				short durability = player.getInventory().getItemInMainHand().getDurability();
-				durability++;
+				if(player.getInventory().getItemInMainHand().getType().getMaxDurability() > 0) 
+					durability++;
 				player.getInventory().getItemInMainHand().setDurability(durability);
 				player.playSound(player.getLocation(), Sound.ENTITY_SHEEP_SHEAR, 100, 80);
 			}
