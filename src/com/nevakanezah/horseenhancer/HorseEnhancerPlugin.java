@@ -32,7 +32,7 @@ public class HorseEnhancerPlugin extends JavaPlugin {
 		ArrayList<UUID> invalidHorses = new ArrayList<>();
 		
 		horses.forEach((k,v) -> checkInvalid(k,invalidHorses));
-		if(invalidHorses.isEmpty()) {
+		if(!invalidHorses.isEmpty()) {
 			String msg = "Unloading [" + horses.size() +"] invalid horses.";
 			getLogger().log(Level.INFO, msg);
 		}

@@ -53,16 +53,31 @@ public class CommandHandler implements CommandExecutor {
 			case "list":
 				result = showList(sender, horseList);
 				break;
+			case "ls":
+				result = showList(sender, horseList);
+				break;
 			case "help":
+				result = showHelp(sender);
+				break;
+			case "?":
 				result = showHelp(sender);
 				break;
 			case "genderratio":
 				result = genderRatio(sender, args);
 				break;
+			case "gender":
+				result = genderRatio(sender, args);
+				break;
 			case "statskew":
 				result = statSkew(sender, args);
 				break;
+			case "skew":
+				result = statSkew(sender, args);
+				break;
 			case "inspect":
+				result = inspectHorse(sender, args);
+				break;
+			case "i":
 				result = inspectHorse(sender, args);
 				break;
 			case "tp":
@@ -74,7 +89,13 @@ public class CommandHandler implements CommandExecutor {
 			case "summon":
 				result = horseSummon(sender, args);
 				break;
-			case "change":
+			case "s":
+				result = horseSummon(sender, args);
+				break;
+			case "update":
+				result = horseUpdate(sender, args);
+				break;
+			case "u":
 				result = horseUpdate(sender, args);
 				break;
 			default:
@@ -175,7 +196,7 @@ public class CommandHandler implements CommandExecutor {
 			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he tp [horseID|horseName]" + ChatColor.YELLOW + " Teleport yourself to the specified horse.");
 			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he tphere [horseID|horseName]" + ChatColor.YELLOW + " Teleport the specified horse to your location.");
 			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he summon [args]" + ChatColor.YELLOW + " Summon horse with specified attributes. Use '/he summon help' for more info.");
-			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he change [args]" + ChatColor.YELLOW + " Modify an existing horse's attributes. Use '/he change help' for more info.");
+			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he update [args]" + ChatColor.YELLOW + " Modify an existing horse's attributes. Use '/he change help' for more info.");
 			sender.sendMessage(ChatColor.DARK_PURPLE + "---");
 		}
 		return true;
@@ -269,7 +290,7 @@ public class CommandHandler implements CommandExecutor {
 		horseList.forEach((k,v) -> msg.addAll(reportMatchingHorses(k, v, (Player)sender, searchParam)));
 		
 		if(msg.isEmpty())
-			msg.add(ChatColor.DARK_RED + "No horses were found matching [" + ChatColor.DARK_GREEN + searchParam + ChatColor.DARK_RED + "]");
+			msg.add(ChatColor.RED + "No horses were found matching [" + ChatColor.DARK_GREEN + searchParam + ChatColor.RED + "]");
 		
 		for(String m : msg) {
 			sender.sendMessage(m);
@@ -279,10 +300,10 @@ public class CommandHandler implements CommandExecutor {
 	
 	private ArrayList<String> reportMatchingHorses(UUID id, HorseData horseData, Player player, String searchParam) {
 		AbstractHorse horse = (AbstractHorse)Bukkit.getEntity(id);
+		String name = horse.getCustomName() == null ? "" : horse.getCustomName();
 		
 		if(!horseData.getHorseID().equalsIgnoreCase(searchParam) 
-				&& (horse.getCustomName() == null 
-					|| (!horse.getCustomName().equalsIgnoreCase(searchParam) && !horse.getCustomName().equalsIgnoreCase("#" + searchParam))))
+				&& (!searchParam.equalsIgnoreCase(name) && !("#" + searchParam).equalsIgnoreCase(name)))
 			return new ArrayList<>();
 		
 		ArrayList<String> msg = new ArrayList<>();
@@ -375,6 +396,7 @@ public class CommandHandler implements CommandExecutor {
 	
 	private boolean horseSummon(CommandSender sender, String[] args) {
 		boolean result = true;
+		final String valueRequiredError = ChatColor.RED + "A value is required for argument: ";
 		if(sender instanceof ConsoleCommandSender) {
 			sender.sendMessage(PLAYERS_ONLY_MESSAGE);
 			return false;
@@ -459,6 +481,10 @@ public class CommandHandler implements CommandExecutor {
 					sender.sendMessage(ChatColor.RED + "Invalid speed value: " + args[i + 1]);
 					result = false;
 				}
+				catch(IndexOutOfBoundsException e) {
+					sender.sendMessage(valueRequiredError + args[i]);
+					result = false;
+				}
 				break;
 			case "-j":
 				try {
@@ -466,6 +492,10 @@ public class CommandHandler implements CommandExecutor {
 				}
 				catch(NumberFormatException e) {
 					sender.sendMessage(ChatColor.RED + "Invalid jump strength value: " + args[i + 1]);
+					result = false;
+				}
+				catch(IndexOutOfBoundsException e) {
+					sender.sendMessage(valueRequiredError + args[i]);
 					result = false;
 				}
 				break;
@@ -477,22 +507,31 @@ public class CommandHandler implements CommandExecutor {
 					sender.sendMessage(ChatColor.RED + "Invalid max health value: " + args[i + 1]);
 					result = false;
 				}
+				catch(IndexOutOfBoundsException e) {
+					sender.sendMessage(valueRequiredError + args[i]);
+					result = false;
+				}
 				break;
 			case "-o":
 				try {
-					horse.setOwner(Bukkit.getPlayer(args[i + 1]));
-				}
-				catch(NullPointerException e) {
-					sender.sendMessage(ChatColor.RED + "Could not find owner [" + args[i + 1] + "], player must be online.");
-					result = false;
+					if(Bukkit.getPlayer(args[i + 1]).isOnline())
+						horse.setOwner(Bukkit.getPlayer(args[i + 1]));
+					else {
+						sender.sendMessage(ChatColor.RED + "Could not find owner [" + args[i + 1] + "], player must be online.");
+						result = false;
+					}
+				} 
+				catch(IndexOutOfBoundsException e) {
+						sender.sendMessage(valueRequiredError + args[i]);
+						result = false;
 				}
 				break;
 			case "-f":
 				try {
 					father = args[i + 1];
-				}
-				catch(NumberFormatException e) {
-					sender.sendMessage(ChatColor.RED + "Invalid father value: " + args[i + 1]);
+				} 
+				catch(IndexOutOfBoundsException e) {
+					sender.sendMessage(valueRequiredError + args[i]);
 					result = false;
 				}
 				break;
@@ -500,8 +539,25 @@ public class CommandHandler implements CommandExecutor {
 				try {
 					mother = args[i + 1];
 				}
+				catch(IndexOutOfBoundsException e) {
+					sender.sendMessage(valueRequiredError + args[i]);
+					result = false;
+				}
+				break;
+			case "-l":
+				if(!(horse instanceof Llama)) {
+					sender.sendMessage(ChatColor.RED + "Strength can only be set for llamas!");
+					result = false;
+				}
+				try {
+					((Llama)horse).setStrength(Integer.parseInt(args[i + 1]));
+				}
 				catch(NumberFormatException e) {
-					sender.sendMessage(ChatColor.RED + "Invalid mother value: " + args[i + 1]);
+					sender.sendMessage(ChatColor.RED + "Invalid strength value: " + args[i + 1]);
+					result = false;
+				}
+				catch(IndexOutOfBoundsException e) {
+					sender.sendMessage(valueRequiredError + args[i]);
 					result = false;
 				}
 				break;
@@ -516,16 +572,20 @@ public class CommandHandler implements CommandExecutor {
 				String name = subject.getCustomName();
 				
 				if(father != null // if Father was provided, then check if one of the following is true:
-					&& (item.getHorseID().equalsIgnoreCase(father) // They provided exact horseID
-						|| (name != null && name.equalsIgnoreCase(father))  // They provided exact father name
-						|| (name != null && name.equalsIgnoreCase("#" + father)))) // They provided exact father name that begins with #
-					horseData.setFather(subject);
-				
-				if(mother != null
-					&& (item.getHorseID().equalsIgnoreCase(mother) 
-						|| (name != null && name.equalsIgnoreCase(mother)) 
-						|| (name != null && name.equalsIgnoreCase("#" + mother))))
-					horseData.setMother(subject);
+						&& (item.getHorseID().equalsIgnoreCase(father) // They provided exact horseID
+							|| (name != null && name.equalsIgnoreCase(father))  // They provided exact father name
+							|| (name != null && name.equalsIgnoreCase("#" + father)))) { // They provided exact father name that begins with #
+						horseData.setFather(subject);
+						horseData.setFatherName(ChatColor.BLUE + "#" + item.getHorseID());
+					}
+					
+					if(mother != null
+						&& (item.getHorseID().equalsIgnoreCase(mother) 
+							|| (name != null && name.equalsIgnoreCase(mother)) 
+							|| (name != null && name.equalsIgnoreCase("#" + mother)))) {
+						horseData.setMother(subject);
+						horseData.setMotherName(ChatColor.BLUE + "#" + item.getHorseID());
+					}
 			}
 			if((father != null && horseData.getFatherID() == null)) {
 				sender.sendMessage(ChatColor.RED + "Error - Failed to set father: " + father);
@@ -548,19 +608,224 @@ public class CommandHandler implements CommandExecutor {
 		sender.sendMessage(ChatColor.DARK_PURPLE + "-o <Owner>" + ChatColor.YELLOW + "  Name of a player to become the horse's tamer.");
 		sender.sendMessage(ChatColor.DARK_PURPLE + "-f <Father>" + ChatColor.YELLOW + "  HorseID or customName of the horse's father.");
 		sender.sendMessage(ChatColor.DARK_PURPLE + "-m <Mother>" + ChatColor.YELLOW + "  HorseID or customName of the horse's mother.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "-l <Strength>" + ChatColor.YELLOW + "  Llama-only integer strength attribute.");
+	}
+	
+	private void showUpdateUsage(CommandSender sender) {
+		sender.sendMessage(ChatColor.DARK_PURPLE + "/he Update - Change data & attributes of an existing horse.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "Usage: " + ChatColor.YELLOW + "/he Update <HorseID|CustomName> [arguments]");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "Available arguments:");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "-g <Male|Female>" + ChatColor.YELLOW + "  Change the horse's gender.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "-s <Speed>" + ChatColor.YELLOW + "  Decimal value for horse speed.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "-j <Jump>" + ChatColor.YELLOW + "  Decimal value for horse jump strength.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "-h <Health>" + ChatColor.YELLOW + "  Decimal value for horse max HP.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "-o <Owner>" + ChatColor.YELLOW + "  Name of a player to become the horse's tamer.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "-f <Father>" + ChatColor.YELLOW + "  HorseID or customName of the horse's father.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "-m <Mother>" + ChatColor.YELLOW + "  HorseID or customName of the horse's mother.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "-l <Strength>" + ChatColor.YELLOW + "  Llama-only integer strength attribute.");
 	}
 	
 	private boolean horseUpdate(CommandSender sender, String[] args) {
 		boolean result = true;
+		final String valueRequiredError = ChatColor.RED + "A value is required for argument: ";
 		if(sender instanceof ConsoleCommandSender) {
 			sender.sendMessage(PLAYERS_ONLY_MESSAGE);
 			return false;
 		}
 		if(args.length < 2) {
-			sender.sendMessage(ChatColor.RED + "You must specify a horse! Use '/he change help' for more information.");
+			sender.sendMessage(ChatColor.RED + "Horse name required! Use '/he change help' for more information.");
 			return false;
 		}
 		
+		AbstractHorse horse;
+		String searchParam = args[1];
+		String gender = null;
+		String father = null;
+		String mother = null;
+		
+		if(searchParam.equalsIgnoreCase("help")) {
+			showUpdateUsage(sender);
+			return true;
+		}
+		
+		if(searchParam.startsWith("#"))
+			searchParam = searchParam.replace("#", "");
+		
+		ArrayList<UUID> matches = new ArrayList<>();
+		for(HorseData horseData : horseList.values()) {
+			AbstractHorse candidate = (AbstractHorse)Bukkit.getEntity(horseData.getUniqueID());
+			String name = candidate.getCustomName();
+			
+			if(horseData.getHorseID().equalsIgnoreCase(searchParam) 
+					|| (name != null && name.equalsIgnoreCase(searchParam)) 
+					|| (name != null && name.equalsIgnoreCase("#" + searchParam)))
+				matches.add(horseData.getUniqueID());
+		}
+		
+		if(matches.isEmpty())
+		{
+			sender.sendMessage(ChatColor.RED + "No horses found matching: " + args[1]);
+			return false;
+		}
+		
+		if(matches.size() > 1) {
+			sender.sendMessage(ChatColor.DARK_PURPLE + "Found multiple horses matching " + ChatColor.GREEN + args[1] + ChatColor.DARK_PURPLE + ":");
+			matches.forEach(k -> sender.sendMessage(ChatColor.BLUE + "#" + horseList.get(k).getHorseID() + " " 
+					+ ChatColor.GREEN + Bukkit.getEntity(k).getCustomName()));
+			return false;
+		}
+		
+		horse = (AbstractHorse)Bukkit.getEntity(matches.get(0));
+		HorseData horseData = horseList.get(horse.getUniqueId());
+		
+		for(int i = 2; i < args.length; i++) {
+			
+			switch(args[i].toLowerCase()) {
+			case "-g":
+				gender = args[i + 1];
+				if(!gender.equalsIgnoreCase("male") && !gender.equalsIgnoreCase("female")
+					&& !gender.equalsIgnoreCase("m") && !gender.equalsIgnoreCase("f"))
+				{
+					sender.sendMessage(ChatColor.RED + "Gender must either be Male or Female: " + args[i + 1]);
+					return false;
+				}
+				
+				int bias = 0;
+				if(gender.equalsIgnoreCase("male") || gender.equalsIgnoreCase("m"))
+					bias = 1;
+				horseData.setGender(horseData.generateGender(horse, bias));
+				
+				break;
+			case "-s":
+				try {
+					horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue(Double.parseDouble(args[i + 1]));
+				}
+				catch(NumberFormatException e) {
+					sender.sendMessage(ChatColor.RED + "Invalid speed value: " + args[i + 1]);
+					return false;
+				}
+				catch(IndexOutOfBoundsException e) {
+					sender.sendMessage(valueRequiredError + args[i]);
+					result = false;
+				}
+				break;
+			case "-j":
+				try {
+					horse.getAttribute(Attribute.HORSE_JUMP_STRENGTH).setBaseValue(Double.parseDouble(args[i + 1]));
+				}
+				catch(NumberFormatException e) {
+					sender.sendMessage(ChatColor.RED + "Invalid jump strength value: " + args[i + 1]);
+					return false;
+				}
+				catch(IndexOutOfBoundsException e) {
+					sender.sendMessage(valueRequiredError + args[i]);
+					result = false;
+				}
+				break;
+			case "-h":
+				try {
+					horse.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(Double.parseDouble(args[i + 1]));
+				}
+				catch(NumberFormatException e) {
+					sender.sendMessage(ChatColor.RED + "Invalid max health value: " + args[i + 1]);
+					return false;
+				}
+				catch(IndexOutOfBoundsException e) {
+					sender.sendMessage(valueRequiredError + args[i]);
+					result = false;
+				}
+				break;
+			case "-o":
+				try {
+					if(Bukkit.getPlayer(args[i + 1]) != null)
+						horse.setOwner(Bukkit.getPlayer(args[i + 1]));
+					else {
+						sender.sendMessage(ChatColor.RED + "Could not find owner [" + args[i + 1] + "], player must be online.");
+						return false;
+					}
+				}
+				catch(IndexOutOfBoundsException e) {
+					sender.sendMessage(valueRequiredError + args[i]);
+					result = false;
+				}
+				break;
+			case "-f":
+				try {
+					father = args[i + 1];
+				}
+				catch(NumberFormatException e) {
+					sender.sendMessage(ChatColor.RED + "Invalid father value: " + args[i + 1]);
+					return false;
+				}
+				catch(IndexOutOfBoundsException e) {
+					sender.sendMessage(valueRequiredError + args[i]);
+					result = false;
+				}
+				break;
+			case "-m":
+				try {
+					mother = args[i + 1];
+				}
+				catch(NumberFormatException e) {
+					sender.sendMessage(ChatColor.RED + "Invalid mother value: " + args[i + 1]);
+					return false;
+				}
+				catch(IndexOutOfBoundsException e) {
+					sender.sendMessage(valueRequiredError + args[i]);
+					result = false;
+				}
+				break;
+			case "-l":
+				if(!(horse instanceof Llama)) {
+					sender.sendMessage(ChatColor.RED + "Strength can only be set for llamas!");
+					result = false;
+				}
+				try {
+					((Llama)horse).setStrength(Integer.parseInt(args[i + 1]));
+				}
+				catch(NumberFormatException e) {
+					sender.sendMessage(ChatColor.RED + "Invalid strength value: " + args[i + 1]);
+					result = false;
+				}
+				catch(IndexOutOfBoundsException e) {
+					sender.sendMessage(valueRequiredError + args[i]);
+					result = false;
+				}
+				break;
+			default:
+				continue;
+			}
+		}
+		
+		if(father != null || mother != null) {
+			for(HorseData item : horseList.values()) {
+				AbstractHorse subject = (AbstractHorse)Bukkit.getEntity(item.getUniqueID());
+				String name = subject.getCustomName();
+				
+				if(father != null // if Father was provided, then check if one of the following is true:
+					&& (item.getHorseID().equalsIgnoreCase(father) // They provided exact horseID
+						|| (name != null && name.equalsIgnoreCase(father))  // They provided exact father name
+						|| (name != null && name.equalsIgnoreCase("#" + father)))) { // They provided exact father name that begins with #
+					horseData.setFather(subject);
+					horseData.setFatherName(ChatColor.BLUE + "#" + item.getHorseID());
+				}
+				
+				if(mother != null
+					&& (item.getHorseID().equalsIgnoreCase(mother) 
+						|| (name != null && name.equalsIgnoreCase(mother)) 
+						|| (name != null && name.equalsIgnoreCase("#" + mother)))) {
+					horseData.setMother(subject);
+					horseData.setMotherName(ChatColor.BLUE + "#" + item.getHorseID());
+				}
+			}
+			if((father != null && horseData.getFatherID() == null)) {
+				sender.sendMessage(ChatColor.RED + "Error - Failed to set father: " + father);
+			}
+			if((mother != null && horseData.getMotherID() == null)) {
+				sender.sendMessage(ChatColor.RED + "Error - Failed to set mother: " + mother);
+			}
+		}
+		sender.sendMessage(ChatColor.DARK_PURPLE + "Successfully updated " + ChatColor.GREEN + args[1]);
 		return result;
 	}
 }

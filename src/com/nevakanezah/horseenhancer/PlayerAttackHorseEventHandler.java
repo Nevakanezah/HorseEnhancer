@@ -138,7 +138,7 @@ public class PlayerAttackHorseEventHandler implements Listener {
 	private void handleInspection(Player player, AbstractHorse horse, HorseData horseData, EntityDamageByEntityEvent event) {
 		final String INSPECTOR_TOGGLE = plugin.getConfig().getString("enable-inspector").toLowerCase();
 		
-		if(!player.isOp()) 
+		if(!player.isOp()) { 
 			switch(INSPECTOR_TOGGLE) {
 			case "false":
 				return;
@@ -153,6 +153,7 @@ public class PlayerAttackHorseEventHandler implements Listener {
 			default:
 				return;
 			}
+		}
 
 		// Cancel the triggering event
 		event.setCancelled(true);

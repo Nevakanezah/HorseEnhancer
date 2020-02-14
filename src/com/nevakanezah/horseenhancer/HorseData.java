@@ -130,7 +130,7 @@ public class HorseData implements java.io.Serializable {
 		return true;
 	}
 	
-	private Gender generateGender(Entity horse, double bias) {
+	public Gender generateGender(Entity horse, double bias) {
 		
 		if(horse == null) return null;
 		if(!(horse instanceof AbstractHorse)) return null;
@@ -292,6 +292,10 @@ public class HorseData implements java.io.Serializable {
 
 	public void setGender(String input) {
 		this.gender = Gender.valueOf(input);
+	}
+	
+	public void setGender(Gender input) {
+		this.gender = input;
 	}
 	
 	public EntityType getType() {
