@@ -51,50 +51,34 @@ public class CommandHandler implements CommandExecutor {
 				result = pluginReload(sender);
 				break;
 			case "list":
-				result = showList(sender, horseList);
-				break;
 			case "ls":
 				result = showList(sender, horseList);
 				break;
 			case "help":
-				result = showHelp(sender);
-				break;
 			case "?":
 				result = showHelp(sender);
 				break;
 			case "genderratio":
-				result = genderRatio(sender, args);
-				break;
 			case "gender":
 				result = genderRatio(sender, args);
 				break;
 			case "statskew":
-				result = statSkew(sender, args);
-				break;
 			case "skew":
 				result = statSkew(sender, args);
 				break;
 			case "inspect":
-				result = inspectHorse(sender, args);
-				break;
 			case "i":
 				result = inspectHorse(sender, args);
 				break;
 			case "tp":
-				result = horseTeleport(sender, args);
-				break;
 			case "tphere":
 				result = horseTeleport(sender, args);
 				break;
 			case "summon":
-				result = horseSummon(sender, args);
-				break;
 			case "s":
 				result = horseSummon(sender, args);
 				break;
 			case "update":
-				result = horseUpdate(sender, args);
-				break;
 			case "u":
 				result = horseUpdate(sender, args);
 				break;
