@@ -2,6 +2,7 @@ package com.nevakanezah.horseenhancer;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -16,6 +17,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Llama;
 import org.bukkit.entity.Player;
 
+import com.nevakanezah.horseenhancer.util.ArgumentParser;
 import com.nevakanezah.horseenhancer.util.StorableHashMap;
 
 import net.md_5.bungee.api.ChatColor;
@@ -35,18 +37,20 @@ public class CommandHandler implements CommandExecutor {
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
-		if(sender instanceof Player && !((Player) sender).isOp())
+		if(sender instanceof Player && !sender.isOp())
 		{
-			((Player) sender).sendMessage(ChatColor.RED + "Error: Requires op permission!");
+			sender.sendMessage(ChatColor.RED + "Error: Requires op permission!");
 			return true;
 		}
 		
 		if(args.length == 0)
 			return showUsage(sender);
+		
+		List<String> argsFormatted = ArgumentParser.parseSplittedArguments(args);
 
 		boolean result = false;
 		
-		switch(args[0].toLowerCase()) {
+		switch(argsFormatted.get(0).toLowerCase()) {
 			case "reload":
 				result = pluginReload(sender);
 				break;
