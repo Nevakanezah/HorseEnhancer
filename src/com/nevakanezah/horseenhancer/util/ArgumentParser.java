@@ -14,6 +14,7 @@ public class ArgumentParser
 		StringJoiner argumentsOriginal = new StringJoiner(" ");
 		Arrays.stream(args).forEach(argumentsOriginal::add);
 		
+		// Referenced from https://stackabuse.com/regex-splitting-by-character-unless-in-quotes/
 		String[] argumentSplit = argumentsOriginal.toString().split("[ ](?=([^\\\"]*\\\"[^\\\"]*\\\")*[^\\\"]*$)", -1);
 		return Arrays.stream(argumentSplit).map(arg ->
 		{
