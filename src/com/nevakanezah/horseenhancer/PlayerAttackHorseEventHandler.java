@@ -148,6 +148,8 @@ public class PlayerAttackHorseEventHandler implements Listener {
 					player.sendMessage(ChatColor.RED + "That's not your horse!");
 				}
 				return;
+			case "true":
+				break;
 			default:
 				return;
 			}
