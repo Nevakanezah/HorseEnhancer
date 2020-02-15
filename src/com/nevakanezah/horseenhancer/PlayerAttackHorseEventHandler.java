@@ -49,7 +49,7 @@ public class PlayerAttackHorseEventHandler implements Listener {
 	      return;
 	    
 		boolean equicideProtection = plugin.getConfig().getBoolean("enable-equicide-protection");
-	    if(event.getCause().equals(DamageCause.PROJECTILE) && equicideProtection)
+	    if(event.getCause().equals(DamageCause.PROJECTILE) && equicideProtection && ((Projectile)event.getDamager()).getShooter() instanceof Player)
 	    	handleFriendlyFire(event);
 		
 		// Pigs get out. Also, no inspecting animals with riders.
