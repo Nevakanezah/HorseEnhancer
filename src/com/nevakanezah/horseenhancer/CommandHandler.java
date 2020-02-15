@@ -556,9 +556,9 @@ public class CommandHandler implements CommandExecutor {
 		
 		if(!father.isEmpty() || !mother.isEmpty()) {
 			
-			if(father.length() > 1 && father.startsWith("#"))
+			if(father != null && father.length() > 1 && father.startsWith("#"))
 				father = father.substring(1, father.length());
-			if(mother.length() > 1 && mother.startsWith("#"))
+			if(mother != null && mother.length() > 1 && mother.startsWith("#"))
 				mother = mother.substring(1, mother.length());
 			
 			for(HorseData item : horseList.values()) {
@@ -793,9 +793,9 @@ public class CommandHandler implements CommandExecutor {
 		
 		if(father != null || mother != null) {
 			
-			if(father.length() > 1 && father.startsWith("#"))
+			if(father != null && father.length() > 1 && father.startsWith("#"))
 				father = father.substring(1, father.length());
-			if(mother.length() > 1 && mother.startsWith("#"))
+			if(mother != null && mother.length() > 1 && mother.startsWith("#"))
 				mother = mother.substring(1, mother.length());
 			
 			for(HorseData item : horseList.values()) {
