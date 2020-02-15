@@ -4,6 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 import org.junit.jupiter.api.Test;
 
+/**
+* @author CLESurrealism
+* Input validation for ArgumentParser
+**/
 class ArgumentParserTest
 {
 	@Test
