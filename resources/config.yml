@@ -19,6 +19,9 @@ enable-inspector-attributes: true
 ## Whether you can shoot an animal you're currently riding. Mostly applies to pigs.
 enable-equicide-protection: true
 
+## Enable easter egg horses with unique breeding conditions, and custom stats.
+enable-secret-horses: true
+
 # Tools
 
 gelding-tool: shears
