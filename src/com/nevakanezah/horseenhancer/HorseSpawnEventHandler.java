@@ -108,6 +108,8 @@ public class HorseSpawnEventHandler implements Listener {
 		AbstractHorse mother = (AbstractHorse) Bukkit.getEntity(childData.getMotherID());
 		HorseData fatherData = plugin.getHorses().get(childData.getFatherID());
 		HorseData motherData = plugin.getHorses().get(childData.getMotherID());
+		String fatherName = ChatColor.BLUE + "#" + fatherData.getHorseID();
+		String motherName = ChatColor.BLUE + "#" + motherData.getHorseID();
 		
 		// Only horses of opposite gender can breed. If I can figure out how to override target selection in love mode, I will.
 		if(!fatherData.genderCompatible(motherData) && child instanceof AbstractHorse){
@@ -115,12 +117,23 @@ public class HorseSpawnEventHandler implements Listener {
 			return null;
 			}
 		
+		if(father.getCustomName() != null)
+			fatherName = ChatColor.GREEN + father.getCustomName() + " " + fatherName;
+		if(mother.getCustomName() != null)
+			motherName = ChatColor.GREEN + mother.getCustomName() + " " + motherName;
+		
 		// Minecraft seems to determine father/mother based on the order you fed animals, 
 		// so we want to swap if the genders are reversed.
 		if(!fatherData.canSire() && motherData.canSire())
 		{
-			childData.setMother(father);
-			childData.setFather(mother);
+			childData.setMotherID(father.getUniqueId());
+			childData.setFatherID(mother.getUniqueId());
+			childData.setFatherName(motherName);
+			childData.setMotherName(fatherName);
+		}
+		else {
+			childData.setFatherName(fatherName);
+			childData.setMotherName(motherName);
 		}
 		
 		// Inbreeding results in unhealthy children
