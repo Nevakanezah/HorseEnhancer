@@ -563,7 +563,7 @@ public class CommandHandler implements CommandExecutor {
 			
 			for(HorseData item : horseList.values()) {
 				AbstractHorse subject = (AbstractHorse)Bukkit.getEntity(item.getUniqueID());
-				String name = subject.getCustomName();
+				String name = subject.getCustomName() == null? "" : subject.getCustomName();
 				
 				if(father != null // if Father was provided, then check if one of the following is true:
 						&& (item.getHorseID().equalsIgnoreCase(father) // They provided exact horseID
