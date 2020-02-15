@@ -104,8 +104,10 @@ public class PlayerAttackHorseEventHandler implements Listener {
 		final Entity eventEntity = event.getEntity();
 		Player shooter = (Player)((Projectile)event.getDamager()).getShooter();
 		
-		if(eventEntity.getPassengers().contains(shooter))
+		if(eventEntity.getPassengers().contains(shooter)) {
+			event.setDamage(0);
 			event.setCancelled(true);
+		}
 	}
 	
 	private void handleGelding(Player player, AbstractHorse horse, HorseData horseData) {
