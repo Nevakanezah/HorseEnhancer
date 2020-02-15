@@ -272,7 +272,7 @@ public class CommandHandler implements CommandExecutor {
 			return false;
 		}
 		
-		String searchParam = args[1].startsWith("#") ? args[1].replace("#", "") : args[1];
+		String searchParam = args[1].startsWith("#") && args[1].length() > 1 ? args[1].substring(1, args[1].length()) : args[1];
 		
 		ArrayList<String> msg = new ArrayList<>();
 		horseList.forEach((k,v) -> msg.addAll(reportMatchingHorses(k, v, (Player)sender, searchParam)));
@@ -350,7 +350,7 @@ public class CommandHandler implements CommandExecutor {
 		String searchParam = args[1];
 		
 		if(searchParam.startsWith("#"))
-			searchParam = searchParam.replace("#", "");
+			searchParam = searchParam.substring(1, searchParam.length() + 1);
 		
 		ArrayList<UUID> matches = new ArrayList<>();
 		for(HorseData horseData : horseList.values()) {
@@ -397,8 +397,8 @@ public class CommandHandler implements CommandExecutor {
 		AbstractHorse horse;
 		EntityType type;
 		String gender = args[1];
-		String father = null;
-		String mother = null;
+		String father = "";
+		String mother = "";
 		
 		switch(args[1].toLowerCase()) {
 			case "stallion":
@@ -554,7 +554,13 @@ public class CommandHandler implements CommandExecutor {
 			}
 		}
 		
-		if(father != null || mother != null) {
+		if(!father.isEmpty() || !mother.isEmpty()) {
+			
+			if(father.length() > 1 && father.startsWith("#"))
+				father = father.substring(1, father.length());
+			if(mother.length() > 1 && mother.startsWith("#"))
+				mother = mother.substring(1, mother.length());
+			
 			for(HorseData item : horseList.values()) {
 				AbstractHorse subject = (AbstractHorse)Bukkit.getEntity(item.getUniqueID());
 				String name = subject.getCustomName();
@@ -564,7 +570,7 @@ public class CommandHandler implements CommandExecutor {
 							|| (name != null && name.equalsIgnoreCase(father))  // They provided exact father name
 							|| (name != null && name.equalsIgnoreCase("#" + father)))) { // They provided exact father name that begins with #
 						horseData.setFather(subject);
-						horseData.setFatherName(ChatColor.BLUE + "#" + item.getHorseID());
+						horseData.setFatherName(ChatColor.GREEN + name + ChatColor.BLUE + " #" + item.getHorseID());
 					}
 					
 					if(mother != null
@@ -572,7 +578,7 @@ public class CommandHandler implements CommandExecutor {
 							|| (name != null && name.equalsIgnoreCase(mother)) 
 							|| (name != null && name.equalsIgnoreCase("#" + mother)))) {
 						horseData.setMother(subject);
-						horseData.setMotherName(ChatColor.BLUE + "#" + item.getHorseID());
+						horseData.setMotherName(ChatColor.GREEN + name + ChatColor.BLUE + " #" + item.getHorseID());
 					}
 			}
 			if((father != null && horseData.getFatherID() == null)) {
@@ -636,8 +642,8 @@ public class CommandHandler implements CommandExecutor {
 			return true;
 		}
 		
-		if(searchParam.startsWith("#"))
-			searchParam = searchParam.replace("#", "");
+		if(searchParam.startsWith("#") && searchParam.length() > 1)
+			searchParam = searchParam.substring(1, searchParam.length());
 		
 		ArrayList<UUID> matches = new ArrayList<>();
 		for(HorseData horseData : horseList.values()) {
@@ -786,16 +792,22 @@ public class CommandHandler implements CommandExecutor {
 		}
 		
 		if(father != null || mother != null) {
+			
+			if(father.length() > 1 && father.startsWith("#"))
+				father = father.substring(1, father.length());
+			if(mother.length() > 1 && mother.startsWith("#"))
+				mother = mother.substring(1, mother.length());
+			
 			for(HorseData item : horseList.values()) {
 				AbstractHorse subject = (AbstractHorse)Bukkit.getEntity(item.getUniqueID());
-				String name = subject.getCustomName();
+				String name = subject.getCustomName() == null ? "" : subject.getCustomName();
 				
 				if(father != null // if Father was provided, then check if one of the following is true:
 					&& (item.getHorseID().equalsIgnoreCase(father) // They provided exact horseID
 						|| (name != null && name.equalsIgnoreCase(father))  // They provided exact father name
 						|| (name != null && name.equalsIgnoreCase("#" + father)))) { // They provided exact father name that begins with #
 					horseData.setFather(subject);
-					horseData.setFatherName(ChatColor.BLUE + "#" + item.getHorseID());
+					horseData.setFatherName(ChatColor.GREEN + name + ChatColor.BLUE + " #" + item.getHorseID());
 				}
 				
 				if(mother != null
@@ -803,7 +815,7 @@ public class CommandHandler implements CommandExecutor {
 						|| (name != null && name.equalsIgnoreCase(mother)) 
 						|| (name != null && name.equalsIgnoreCase("#" + mother)))) {
 					horseData.setMother(subject);
-					horseData.setMotherName(ChatColor.BLUE + "#" + item.getHorseID());
+					horseData.setMotherName(ChatColor.GREEN + name + ChatColor.BLUE + " #" + item.getHorseID());
 				}
 			}
 			if((father != null && horseData.getFatherID() == null)) {
