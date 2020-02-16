@@ -1,6 +1,6 @@
 name: HorseEnhancer
 main: com.nevakanezah.horseenhancer.HorseEnhancerPlugin
-version: 0.0.2a
+version: 1.0-beta1-MC1.12.2
 api-version: 1.12.2
 commands:
   horseenhancer:
