@@ -7,8 +7,10 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.AbstractHorse;
+import org.bukkit.entity.Donkey;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
@@ -18,8 +20,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.event.entity.EntityBreedEvent;
 
+import com.nevakanezah.horseenhancer.util.SpecialHorses;
 import com.nevakanezah.horseenhancer.util.StorableHashMap;
 
 import net.md_5.bungee.api.ChatColor;
@@ -30,7 +34,7 @@ public class HorseSpawnEventHandler implements Listener {
 	
 	static final String MOVE_SPEED = "GENERIC_MOVEMENT_SPEED";
 	static final String MAX_HEALTH = "GENERIC_MAX_HEALTH";
-	static final String JUMP_STRENGTH = "JUMP_STRENGTH";
+	static final String JUMP_STRENGTH = "HORSE_JUMP_STRENGTH";
 
 	public HorseSpawnEventHandler(HorseEnhancerPlugin plugin) {
 		this.plugin = plugin;
@@ -101,7 +105,8 @@ public class HorseSpawnEventHandler implements Listener {
 	 * @param childData The data for the child that we will operate on
 	 * @return The modified childData
 	 */
-	private HorseData handleBreedingEvent(CreatureSpawnEvent event, HorseData childData) {		
+	private HorseData handleBreedingEvent(CreatureSpawnEvent event, HorseData childData) {
+		final boolean secretHorsesEnabled = plugin.getConfig().getBoolean("enable-secret-horses");
 		// Declare the horses & data containers involved
 		AbstractHorse child = (AbstractHorse) event.getEntity();
 		AbstractHorse father = (AbstractHorse) Bukkit.getEntity(childData.getFatherID());
@@ -141,29 +146,22 @@ public class HorseSpawnEventHandler implements Listener {
 			Location loc = mother.getLocation();
 			child.remove();
 			
-			AbstractHorse newChild = (AbstractHorse)loc.getWorld().spawnEntity(loc, EntityType.ZOMBIE_HORSE);
-			childData.setUniqueID(newChild.getUniqueId());
-			childData.setType(EntityType.ZOMBIE_HORSE);
+			AbstractHorse newChild = SpecialHorses.spawnInbred(loc, childData);
 			
-			newChild.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue(0.1);
-			newChild.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(10);
-			newChild.setTamed(true);
-			newChild.setAge(-9999999);
-			newChild.setJumpStrength(0.3);
-			newChild.setAgeLock(true);
-			newChild.setBreed(false);
-			
-			childData.setGender("INBRED");
 			registerHorse(newChild.getUniqueId(), childData);
 			return null;
 			}
+		
+		if(secretHorsesEnabled && handleSecretHorses(child, father, mother, childData, fatherData, motherData))
+			return childData;
 		
 		//Apply modified stats to the child
 		child.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue(
 				Math.max( 0.1125, Math.min( 0.3375, getAttributeFromParents(father, mother, MOVE_SPEED ))));
 		child.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(
 				Math.max( 15, Math.min( 30, getAttributeFromParents(father, mother, MAX_HEALTH ))));
-		child.setJumpStrength( Math.max( 0.4, Math.min( 1.0, getAttributeFromParents(father, mother, JUMP_STRENGTH ) )));
+		child.getAttribute(Attribute.HORSE_JUMP_STRENGTH).setBaseValue( 
+				Math.max( 0.4, Math.min( 1.0, getAttributeFromParents(father, mother, JUMP_STRENGTH ) )));
 		
 		// Coat colouration handling
 		if(child.getType().equals(EntityType.HORSE)) {
@@ -173,7 +171,7 @@ public class HorseSpawnEventHandler implements Listener {
 		
 		return childData;
 	}
-	
+
 	/**
 	 * Determine the colour of the child based loosely on the colours of the parents,
 	 * instead of randomly.
@@ -220,16 +218,9 @@ public class HorseSpawnEventHandler implements Listener {
 		double bias = Math.random(); 
 		double result = 0;
 		
-		if(attr.contentEquals(MOVE_SPEED)
-			|| attr.contentEquals(MAX_HEALTH)) {
-			result = (father.getAttribute(Attribute.valueOf(attr)).getBaseValue() * bias)
-			+ (mother.getAttribute(Attribute.valueOf(attr)).getBaseValue() * (1-bias));
-		}
-		else if(attr.contentEquals(JUMP_STRENGTH)) {
-			result = (father.getJumpStrength() * bias)
-			+ (mother.getJumpStrength() * (1-bias));
-		}
-		
+		result = (father.getAttribute(Attribute.valueOf(attr)).getBaseValue() * bias)
+		+ (mother.getAttribute(Attribute.valueOf(attr)).getBaseValue() * (1-bias));
+	
 		// Convert skew to its value as a % of result, then apply that value to the result
 		skew *= result;
 		result += skew;
@@ -250,6 +241,71 @@ public class HorseSpawnEventHandler implements Listener {
 		else
 			output = ChatColor.RED + "Failed to register horse!";
 		return output;
+	}
+	
+	/**
+	 * Evaluates whether to spawn one of the easter egg horse varieties, and handles
+	 * spawning and attribute assignment. Secret horses are acquired through breeding
+	 * parents with particular circumstances, and only one secret horse may exist 
+	 * at a time on the server.
+	 * @param child The new horse entity to update or replace
+	 * @param father The horse's father
+	 * @param mother The horse's mother
+	 * @param childData The horse's data container to be updated
+	 * @param fatherData The father's data container, for evaluating conditions
+	 * @param motherData The mother's data container, for evaluating conditions
+	 * @return true if a secret horse was born, false otherwise.
+	 */
+	private boolean handleSecretHorses(AbstractHorse child, AbstractHorse father, AbstractHorse mother,
+			HorseData childData, HorseData fatherData, HorseData motherData) {	
+		Location loc = child.getLocation();
+		double fSpeed = father.getAttribute(Attribute.valueOf(MOVE_SPEED)).getBaseValue();
+		double fHealth = father.getAttribute(Attribute.valueOf(MAX_HEALTH)).getBaseValue();
+		double fJump = father.getAttribute(Attribute.valueOf(JUMP_STRENGTH)).getBaseValue();
+		double mSpeed = mother.getAttribute(Attribute.valueOf(MOVE_SPEED)).getBaseValue();
+		double mHealth = mother.getAttribute(Attribute.valueOf(MAX_HEALTH)).getBaseValue();
+		double mJump = mother.getAttribute(Attribute.valueOf(JUMP_STRENGTH)).getBaseValue();
+		
+		// A better-than-vanilla horse born to an unlikely couple
+		boolean maximule = false;
+		
+		// Why is it called invincible if I can still see it? Well not anymore!
+		boolean invincible = false;
+		
+		for(HorseData horseData : horseList.values()) {
+			if(horseData.getGenderName().equalsIgnoreCase("UNIQUE"))
+				return false;
+		}
+		
+		if(((father instanceof Horse && mother instanceof Donkey)
+				&& (0.1125 <= fSpeed && fSpeed <= 0.135)
+				&& (0.4 <= fJump && fJump <= 0.46)
+				&& (15 <= fHealth && fHealth < 17)
+				&& (28.5 <= mHealth && mHealth <= 30))
+		  || ((father instanceof Donkey && mother instanceof Horse)
+				&& (0.1125 <= mSpeed && mSpeed <= 0.135)
+				&& (0.4 <= mJump && mJump <= 0.46)
+				&& (15 <= mHealth && mHealth < 17)
+				&& (28.5 <= fHealth && fHealth <= 30))) {
+			maximule = true;
+		}
+		else if(father.hasPotionEffect(PotionEffectType.INVISIBILITY) 
+				&& ((Horse)father).getInventory().getArmor().getType().equals(Material.GOLD_BARDING)
+				&& mother.hasPotionEffect(PotionEffectType.INVISIBILITY)
+				&& ((Horse)mother).getInventory().getArmor().getType().equals(Material.GOLD_BARDING)) {
+			invincible = true;
+		}
+				
+		if(maximule || invincible)
+			child.remove();
+		
+		if(maximule)
+			SpecialHorses.spawnMaximule(loc, childData);
+		
+		if(invincible)
+			SpecialHorses.spawnInvincible(loc, childData);
+		
+		return true;
 	}
 	
 }

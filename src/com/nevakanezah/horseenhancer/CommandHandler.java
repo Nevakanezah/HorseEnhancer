@@ -18,6 +18,7 @@ import org.bukkit.entity.Llama;
 import org.bukkit.entity.Player;
 
 import com.nevakanezah.horseenhancer.util.ArgumentParser;
+import com.nevakanezah.horseenhancer.util.SpecialHorses;
 import com.nevakanezah.horseenhancer.util.StorableHashMap;
 
 import net.md_5.bungee.api.ChatColor;
@@ -426,13 +427,23 @@ public class CommandHandler implements CommandExecutor {
 				type = EntityType.LLAMA;
 				break;
 			case "skeleton":
+			case "skeleton_horse":
 				type = EntityType.SKELETON_HORSE;
 				gender = "UNDEAD";
 				break;
 			case "zombie":
+			case "zombie_horse":
 				type = EntityType.ZOMBIE_HORSE;
 				gender = "UNDEAD";
 				break;
+			case "maximule":
+				HorseData maximuleData = new HorseData();
+				SpecialHorses.spawnMaximule(((Entity)sender).getLocation(), maximuleData);
+				return true;
+			case "invincible":
+				HorseData invincibleData = new HorseData();
+				SpecialHorses.spawnInvincible(((Entity)sender).getLocation(), invincibleData);
+				return true;
 			case "help":
 				showSummonUsage(sender);
 				return true;
@@ -648,7 +659,7 @@ public class CommandHandler implements CommandExecutor {
 		ArrayList<UUID> matches = new ArrayList<>();
 		for(HorseData horseData : horseList.values()) {
 			AbstractHorse candidate = (AbstractHorse)Bukkit.getEntity(horseData.getUniqueID());
-			String name = candidate.getCustomName();
+			String name = candidate.getCustomName() == null ? "" : candidate.getCustomName();
 			
 			if(horseData.getHorseID().equalsIgnoreCase(searchParam) 
 					|| (name != null && name.equalsIgnoreCase(searchParam)) 
