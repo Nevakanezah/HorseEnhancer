@@ -46,6 +46,10 @@ public class HorseData implements java.io.Serializable {
 	
 	// CONSTRUCTORS
 	
+	public HorseData() {
+		this.uniqueID = UUID.randomUUID();
+	}
+	
 	public HorseData(Entity child, Entity father, Entity mother, double bias) {
 		
 		if(child == null) return;
