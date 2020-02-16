@@ -139,7 +139,7 @@ public class CommandHandler implements CommandExecutor {
 		else if(sender instanceof ConsoleCommandSender) {
 			sender.sendMessage("There are currently [" + horseList.size() + "] registered horses");
 			sender.sendMessage("---");
-			horseList.forEach((k,v) -> sender.sendMessage("[" + k + "]\n"));
+			horseList.forEach((k,v) -> sender.sendMessage(listMessage(k,v)));
 			return true;
 		}
 		return false;
