@@ -258,6 +258,7 @@ public class HorseSpawnEventHandler implements Listener {
 	 */
 	private boolean handleSecretHorses(AbstractHorse child, AbstractHorse father, AbstractHorse mother,
 			HorseData childData, HorseData fatherData, HorseData motherData) {	
+		Boolean specialHorseSpawned = false;
 		Location loc = child.getLocation();
 		double fSpeed = father.getAttribute(Attribute.valueOf(MOVE_SPEED)).getBaseValue();
 		double fHealth = father.getAttribute(Attribute.valueOf(MAX_HEALTH)).getBaseValue();
@@ -299,13 +300,18 @@ public class HorseSpawnEventHandler implements Listener {
 		if(maximule || invincible)
 			child.remove();
 		
-		if(maximule)
+		if(maximule) {
 			SpecialHorses.spawnMaximule(loc, childData);
+			specialHorseSpawned = true;
+		}
 		
-		if(invincible)
+		if(invincible) {
 			SpecialHorses.spawnInvincible(loc, childData);
+			specialHorseSpawned = true;
+		}
+
 		
-		return true;
+		return specialHorseSpawned;
 	}
 	
 }
