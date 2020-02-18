@@ -55,6 +55,9 @@ public class CommandHandler implements CommandExecutor {
 			case "reload":
 				result = pluginReload(sender);
 				break;
+			case "values":
+				result = showConfig(sender);
+				break;
 			case "list":
 			case "ls":
 				result = showList(sender, horseList);
@@ -93,7 +96,7 @@ public class CommandHandler implements CommandExecutor {
 		
 		return result;
 	}
-	
+
 	private boolean showUsage(CommandSender sender) {
 		if(sender instanceof Player) {
 			sender.sendMessage(ChatColor.DARK_PURPLE + "HorseEnhancer version 0.0.2a by "
@@ -160,34 +163,19 @@ public class CommandHandler implements CommandExecutor {
 	}
 	
 	private boolean showHelp(CommandSender sender) {
-		if(sender instanceof ConsoleCommandSender) {
-			sender.sendMessage("HorseEnhancer commands:");
-			sender.sendMessage("/he help\tShow this dialog");
-			sender.sendMessage("/he reload\tReload plugin configuration");
-			sender.sendMessage("/he list\tList all registered horse IDs");
-			sender.sendMessage("/he genderRatio [0.0 - 1.0]");
-			sender.sendMessage("\tChange the percentage of horses born male.");
-			sender.sendMessage("/he statSkew [min] [max]");
-			sender.sendMessage("\tChange the degree by which foal stats can be better"
-					+ "\n\t\t\tor worse than their parents.");
-			sender.sendMessage("\tValues must be between -1.0 and 1.0.");
-			sender.sendMessage("/he genderRatio [0.0 - 1.0]");
-			sender.sendMessage("\tChange the percentage of horses born male.");
-		}
-		if(sender instanceof Player) {
-			sender.sendMessage(ChatColor.DARK_PURPLE + "HorseEnhancer commands:");
-			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he help" + ChatColor.YELLOW + " Show this dialog");
-			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he reload" + ChatColor.YELLOW + " Reload plugin configuration");
-			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he list" + ChatColor.YELLOW + " List all registered horse IDs");
-			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he genderRatio [0.0 - 1.0]" + ChatColor.YELLOW + " Change the percentage of horses born male.");
-			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he statSkew [-1.0] [1.0]" + ChatColor.YELLOW + " Range by which foal stats can differ from their parents.");
-			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he inspect [horseID|horseCustomName]" + ChatColor.YELLOW + " Show inspection details for the specified horse.");
-			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he tp [horseID|horseName]" + ChatColor.YELLOW + " Teleport yourself to the specified horse.");
-			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he tphere [horseID|horseName]" + ChatColor.YELLOW + " Teleport the specified horse to your location.");
-			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he summon [args]" + ChatColor.YELLOW + " Summon horse with specified attributes. Use '/he summon help' for more info.");
-			sender.sendMessage(ChatColor.DARK_PURPLE + "  /he update [args]" + ChatColor.YELLOW + " Modify an existing horse's attributes. Use '/he change help' for more info.");
-			sender.sendMessage(ChatColor.DARK_PURPLE + "---");
-		}
+		sender.sendMessage(ChatColor.DARK_PURPLE + "HorseEnhancer commands:");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "  /he help" + ChatColor.YELLOW + " Show this dialog.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "  /he reload" + ChatColor.YELLOW + " Reload plugin configuration.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "  /he list" + ChatColor.YELLOW + " List all registered horse IDs.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "  /he values" + ChatColor.YELLOW + " Show the current value of all config settings.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "  /he genderRatio [0.0 - 1.0]" + ChatColor.YELLOW + " Change the percentage of horses born male.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "  /he statSkew [-1.0] [1.0]" + ChatColor.YELLOW + " Range by which foal stats can differ from their parents.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "  /he inspect [horseID|horseCustomName]" + ChatColor.YELLOW + " Show inspection details for the specified horse.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "  /he tp [horseID|horseName]" + ChatColor.YELLOW + " Teleport yourself to the specified horse.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "  /he tphere [horseID|horseName]" + ChatColor.YELLOW + " Teleport the specified horse to your location.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "  /he summon [args]" + ChatColor.YELLOW + " Summon horse with specified attributes. Use '/he summon help' for more info.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "  /he update [args]" + ChatColor.YELLOW + " Modify an existing horse's attributes. Use '/he change help' for more info.");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "---");
 		return true;
 	}
 	
@@ -838,5 +826,19 @@ public class CommandHandler implements CommandExecutor {
 		}
 		sender.sendMessage(ChatColor.DARK_PURPLE + "Successfully updated " + ChatColor.GREEN + args[1]);
 		return result;
+	}
+	
+	
+	private boolean showConfig(CommandSender sender) {
+		sender.sendMessage(ChatColor.DARK_PURPLE + "Current config values:");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "enable-inspector: [" + ChatColor.YELLOW + plugin.getConfig().getBoolean("enable-inspector") + ChatColor.DARK_PURPLE + "]");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "enable-inspector-attributes: [" + ChatColor.YELLOW + plugin.getConfig().getBoolean("enable-inspector-attributes") + ChatColor.DARK_PURPLE + "]");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "enable-equicide-protection: [" + ChatColor.YELLOW + plugin.getConfig().getBoolean("enable-equicide-protection") + ChatColor.DARK_PURPLE + "]");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "secret-horses: [" + ChatColor.YELLOW + plugin.getConfig().getBoolean("enable-secret-horses") + ChatColor.DARK_PURPLE + "]");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "gelding-tool: [" + ChatColor.YELLOW + plugin.getConfig().getString("gelding-tool") + ChatColor.DARK_PURPLE + "]");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "inspection-tool: [" + ChatColor.YELLOW + plugin.getConfig().getString("inspection-tool") + ChatColor.DARK_PURPLE + "]");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "skew range [" + ChatColor.YELLOW + plugin.getConfig().getDouble("childskew-lower") + " - " + plugin.getConfig().getDouble("childskew-upper") + ChatColor.DARK_PURPLE + "]");
+		sender.sendMessage(ChatColor.DARK_PURPLE + "gender-ratio: [" + ChatColor.YELLOW + plugin.getConfig().getDouble("gender-ratio") + ChatColor.DARK_PURPLE + "]");
+		return false;
 	}
 }
