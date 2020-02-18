@@ -213,7 +213,7 @@ public class HorseSpawnEventHandler implements Listener {
 	 */
 	protected double getAttributeFromParents(AbstractHorse father, AbstractHorse mother, String attr) {
 		// Child stats are set within the range defined by their parents' stats, then skewed by a % value
-		double skew = ThreadLocalRandom.current().nextDouble(plugin.getConfig().getDouble("childskew-lower"), plugin.getConfig().getDouble("childskew-upper")+0.001);
+		double skew = ThreadLocalRandom.current().nextDouble(plugin.getConfig().getDouble("childskew-lower"), plugin.getConfig().getDouble("childskew-upper")+0.00001);
 		// Defines which parent the child most takes after
 		double bias = Math.random(); 
 		double result = 0;
