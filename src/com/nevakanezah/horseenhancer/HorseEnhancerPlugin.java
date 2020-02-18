@@ -10,13 +10,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.nevakanezah.horseenhancer.util.StorableHashMap;
 
 /**
+ * HorseEnhancer:
+ * All-natural enhancements to equine husbandry in Minecraft.
  * 
  * @author Nevakanezah
- * 
- * HorseEnhancer:
- * All-natural enhancements to vanilla horses
- * Much reference made to https://github.com/AnomalyTea/Horse-Inspector/tree/master/src/com/anomalytea/HorseInspector,
- * whose work was vital in learning how these parts should fit together.
  *
  */
 
