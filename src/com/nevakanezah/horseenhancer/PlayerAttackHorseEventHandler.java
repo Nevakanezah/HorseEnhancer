@@ -164,7 +164,7 @@ public class PlayerAttackHorseEventHandler implements Listener {
 		
 		// Collect & format horse data
 		String speedFmt = new DecimalFormat("#.####").format(horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getBaseValue());
-		String jumpFmt = new DecimalFormat("#.###").format(horse.getJumpStrength());
+		String jumpFmt = new DecimalFormat("#.###").format(horse.getAttribute(Attribute.HORSE_JUMP_STRENGTH).getBaseValue());
 		boolean ownerless = horse.getOwner() == null;
 		
 		String health = "" + ChatColor.GREEN + (int)horse.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue() + "/30";
