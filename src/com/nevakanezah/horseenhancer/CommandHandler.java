@@ -564,7 +564,7 @@ public class CommandHandler implements CommandExecutor {
 				AbstractHorse subject = (AbstractHorse)Bukkit.getEntity(item.getUniqueID());
 				String name = subject.getCustomName() == null? "" : subject.getCustomName();
 				
-				if(father != null // if Father was provided, then check if one of the following is true:
+				if(!father.equals("") // if Father was provided, then check if one of the following is true:
 						&& (item.getHorseID().equalsIgnoreCase(father) // They provided exact horseID
 							|| (name != null && name.equalsIgnoreCase(father))  // They provided exact father name
 							|| (name != null && name.equalsIgnoreCase("#" + father)))) { // They provided exact father name that begins with #
@@ -572,7 +572,7 @@ public class CommandHandler implements CommandExecutor {
 						horseData.setFatherName(ChatColor.GREEN + name + ChatColor.BLUE + " #" + item.getHorseID());
 					}
 					
-					if(mother != null
+					if(!mother.equals("")
 						&& (item.getHorseID().equalsIgnoreCase(mother) 
 							|| (name != null && name.equalsIgnoreCase(mother)) 
 							|| (name != null && name.equalsIgnoreCase("#" + mother)))) {
@@ -580,10 +580,10 @@ public class CommandHandler implements CommandExecutor {
 						horseData.setMotherName(ChatColor.GREEN + name + ChatColor.BLUE + " #" + item.getHorseID());
 					}
 			}
-			if((father != null && horseData.getFatherID() == null)) {
+			if((!father.equals("") && horseData.getFatherID() == null)) {
 				sender.sendMessage(ChatColor.RED + "Error - Failed to set father: " + father);
 			}
-			if((mother != null && horseData.getMotherID() == null)) {
+			if((!mother.equals("") && horseData.getMotherID() == null)) {
 				sender.sendMessage(ChatColor.RED + "Error - Failed to set mother: " + mother);
 			}
 		}
@@ -633,8 +633,8 @@ public class CommandHandler implements CommandExecutor {
 		AbstractHorse horse;
 		String searchParam = args[1];
 		String gender = null;
-		String father = null;
-		String mother = null;
+		String father = "";
+		String mother = "";
 		
 		if(searchParam.equalsIgnoreCase("help")) {
 			showUpdateUsage(sender);
@@ -801,7 +801,7 @@ public class CommandHandler implements CommandExecutor {
 				AbstractHorse subject = (AbstractHorse)Bukkit.getEntity(item.getUniqueID());
 				String name = subject.getCustomName() == null ? "" : subject.getCustomName();
 				
-				if(father != null // if Father was provided, then check if one of the following is true:
+				if(!father.equals("") // if Father was provided, then check if one of the following is true:
 					&& (item.getHorseID().equalsIgnoreCase(father) // They provided exact horseID
 						|| (name != null && name.equalsIgnoreCase(father))  // They provided exact father name
 						|| (name != null && name.equalsIgnoreCase("#" + father)))) { // They provided exact father name that begins with #
@@ -809,7 +809,7 @@ public class CommandHandler implements CommandExecutor {
 					horseData.setFatherName(ChatColor.GREEN + name + ChatColor.BLUE + " #" + item.getHorseID());
 				}
 				
-				if(mother != null
+				if(!mother.equals("")
 					&& (item.getHorseID().equalsIgnoreCase(mother) 
 						|| (name != null && name.equalsIgnoreCase(mother)) 
 						|| (name != null && name.equalsIgnoreCase("#" + mother)))) {
@@ -817,10 +817,10 @@ public class CommandHandler implements CommandExecutor {
 					horseData.setMotherName(ChatColor.GREEN + name + ChatColor.BLUE + " #" + item.getHorseID());
 				}
 			}
-			if((father != null && horseData.getFatherID() == null)) {
+			if((!father.equals("") && horseData.getFatherID() == null)) {
 				sender.sendMessage(ChatColor.RED + "Error - Failed to set father: " + father);
 			}
-			if((mother != null && horseData.getMotherID() == null)) {
+			if((!mother.equals("") && horseData.getMotherID() == null)) {
 				sender.sendMessage(ChatColor.RED + "Error - Failed to set mother: " + mother);
 			}
 		}
