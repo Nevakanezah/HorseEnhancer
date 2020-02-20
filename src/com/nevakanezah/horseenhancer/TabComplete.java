@@ -16,8 +16,14 @@ public class TabComplete implements TabCompleter {
 			"reload",
 			"list",
 			"help",
+			"summon",
+			"update",
 			"genderRatio",
 			"statSkew",
+			"tp",
+			"tphere",
+			"values",
+			
 	};
 
 	@Override
