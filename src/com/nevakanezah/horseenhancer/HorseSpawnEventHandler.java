@@ -84,7 +84,7 @@ public class HorseSpawnEventHandler implements Listener {
 			horseData = new HorseData(horse, null, null, plugin.getConfig().getDouble("gender-ratio"));
 		}
 		
-		if(event.getEntity() instanceof SkeletonHorse && !(event.getSpawnReason().equals(SpawnReason.DEFAULT)))
+		if(event.getEntity() instanceof SkeletonHorse && !(event.getSpawnReason().equals(SpawnReason.NATURAL)))
 		{
 			horseData.setFatherName(ChatColor.DARK_RED + "THUNDER");
 			horseData.setMotherName(ChatColor.DARK_RED + "DEATH");
