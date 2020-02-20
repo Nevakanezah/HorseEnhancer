@@ -1,6 +1,7 @@
 package com.nevakanezah.horseenhancer;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -28,6 +29,9 @@ public class HorseDeathEventHandler implements Listener {
 		if(event.getEntity() instanceof AbstractHorse && horseList.containsKey(event.getEntity().getUniqueId()))
 		{
 			horseList.remove(event.getEntity().getUniqueId());
+			ArrayList<UUID> invalidHorses = new ArrayList<>();
+			horseList.forEach((k,v) -> plugin.checkInvalid(k,invalidHorses));
+			invalidHorses.forEach(k -> horseList.remove(k));
 			try { horseList.saveToFile(); } 
 			catch (IOException e)
 			{

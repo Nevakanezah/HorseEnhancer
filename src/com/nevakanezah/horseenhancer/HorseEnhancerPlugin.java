@@ -135,7 +135,7 @@ public class HorseEnhancerPlugin extends JavaPlugin {
 		return horses;
 	}
 	
-	private void checkInvalid(UUID id, ArrayList<UUID> invalidHorses)
+	public void checkInvalid(UUID id, ArrayList<UUID> invalidHorses)
 	{
 		
 		if(this.getServer().getEntity(id) == null || this.getServer().getEntity(id).isDead())
