@@ -270,7 +270,7 @@ public class CommandHandler implements CommandExecutor {
 		horseList.forEach((k,v) -> msg.addAll(reportMatchingHorses(k, v, (Player)sender, searchParam)));
 		
 		if(msg.isEmpty())
-			msg.add(ChatColor.RED + "No horses were found matching [" + ChatColor.DARK_GREEN + searchParam + ChatColor.RED + "]");
+			msg.add(ChatColor.RED + "No horses were found matching [" + ChatColor.GREEN + searchParam + ChatColor.RED + "]");
 		
 		for(String m : msg) {
 			sender.sendMessage(m);
@@ -280,7 +280,7 @@ public class CommandHandler implements CommandExecutor {
 	
 	private ArrayList<String> reportMatchingHorses(UUID id, HorseData horseData, Player player, String searchParam) {
 		AbstractHorse horse = (AbstractHorse)Bukkit.getEntity(id);
-		String name = horse.getCustomName() == null ? "" : horse.getCustomName();
+		String name = horse.getCustomName() == null ? "" : ChatColor.stripColor(horse.getCustomName());
 		
 		if(!horseData.getHorseID().equalsIgnoreCase(searchParam) 
 				&& (!searchParam.equalsIgnoreCase(name) && !("#" + searchParam).equalsIgnoreCase(name)))
@@ -347,7 +347,7 @@ public class CommandHandler implements CommandExecutor {
 		ArrayList<UUID> matches = new ArrayList<>();
 		for(HorseData horseData : horseList.values()) {
 			AbstractHorse horse = (AbstractHorse)Bukkit.getEntity(horseData.getUniqueID());
-			String name = horse.getCustomName();
+			String name = ChatColor.stripColor(horse.getCustomName());
 			
 			if(horseData.getHorseID().equalsIgnoreCase(searchParam) 
 					|| (name != null && name.equalsIgnoreCase(searchParam)) 
@@ -656,7 +656,7 @@ public class CommandHandler implements CommandExecutor {
 		ArrayList<UUID> matches = new ArrayList<>();
 		for(HorseData horseData : horseList.values()) {
 			AbstractHorse candidate = (AbstractHorse)Bukkit.getEntity(horseData.getUniqueID());
-			String name = candidate.getCustomName() == null ? "" : candidate.getCustomName();
+			String name = candidate.getCustomName() == null ? "" : ChatColor.stripColor(candidate.getCustomName());
 			
 			if(horseData.getHorseID().equalsIgnoreCase(searchParam) 
 					|| (name != null && name.equalsIgnoreCase(searchParam)) 
