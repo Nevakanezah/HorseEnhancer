@@ -118,7 +118,7 @@ public class CommandHandler implements CommandExecutor {
 	}
 	
 	private boolean pluginReload(CommandSender sender) {
-		ArrayList<String> msg = plugin.loadConfig();
+		ArrayList<String> msg = (ArrayList<String>) plugin.loadConfig();
 		for(String m : msg) {
 			if(sender instanceof Player)
 				sender.sendMessage(ChatColor.GREEN + m);

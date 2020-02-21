@@ -1,6 +1,8 @@
 package com.nevakanezah.horseenhancer;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,7 +28,7 @@ public class HorseEnhancerPlugin extends JavaPlugin {
 
 	@Override
 	public void onDisable() {
-		purgeInvalidHorses();
+		purgeInvalidHorses(true);
 	}
 
 	@Override
@@ -60,7 +62,7 @@ public class HorseEnhancerPlugin extends JavaPlugin {
 		this.getCommand("horseenhancer").setTabCompleter(new TabComplete());
 	}
 
-	public ArrayList<String> loadConfig() {
+	public List<String> loadConfig() {
 		
 		ArrayList<String> msg = new ArrayList<>();
 		
@@ -122,18 +124,23 @@ public class HorseEnhancerPlugin extends JavaPlugin {
 		return horses;
 	}
 	
-	public void purgeInvalidHorses()
+	public void purgeInvalidHorses() {
+		purgeInvalidHorses(false);
+	}
+	
+	public void purgeInvalidHorses(Boolean doLogOutput)
 	{
 		int invalidHorses = 0;
-		
-		for(UUID horseId : horses.keySet()) {
+		Iterator<UUID> horseKeys = horses.keySet().iterator();
+		while(horseKeys.hasNext()) {
+			UUID horseId = horseKeys.next();
 			if(this.getServer().getEntity(horseId) == null || this.getServer().getEntity(horseId).isDead()) {
-				horses.remove(horseId);
+				horseKeys.remove();
 				invalidHorses++;
 			}
 		}
 		
-		if(invalidHorses > 0) {
+		if(invalidHorses > 0 && Boolean.TRUE.equals(doLogOutput)) {
 			String msg = "Unloading [" + invalidHorses +"] invalid horses.";
 			getLogger().log(Level.INFO, msg);
 		}
