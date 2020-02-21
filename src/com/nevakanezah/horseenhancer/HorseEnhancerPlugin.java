@@ -26,20 +26,7 @@ public class HorseEnhancerPlugin extends JavaPlugin {
 
 	@Override
 	public void onDisable() {
-		ArrayList<UUID> invalidHorses = new ArrayList<>();
-		
-		horses.forEach((k,v) -> checkInvalid(k,invalidHorses));
-		if(!invalidHorses.isEmpty()) {
-			String msg = "Unloading [" + horses.size() +"] invalid horses.";
-			getLogger().log(Level.INFO, msg);
-		}
-		invalidHorses.forEach(k -> horses.remove(k));
-		
-	    try { horses.saveToFile(); } 
-	    catch (IOException e)
-	    {
-	    	getLogger().log(Level.WARNING, "Error: Failed to save horse data!", e);
-	    }
+		purgeInvalidHorses();
 	}
 
 	@Override
@@ -135,10 +122,26 @@ public class HorseEnhancerPlugin extends JavaPlugin {
 		return horses;
 	}
 	
-	public void checkInvalid(UUID id, ArrayList<UUID> invalidHorses)
+	public void purgeInvalidHorses()
 	{
+		int invalidHorses = 0;
 		
-		if(this.getServer().getEntity(id) == null || this.getServer().getEntity(id).isDead())
-			invalidHorses.add(id);
+		for(UUID horseId : horses.keySet()) {
+			if(this.getServer().getEntity(horseId) == null || this.getServer().getEntity(horseId).isDead()) {
+				horses.remove(horseId);
+				invalidHorses++;
+			}
+		}
+		
+		if(invalidHorses > 0) {
+			String msg = "Unloading [" + invalidHorses +"] invalid horses.";
+			getLogger().log(Level.INFO, msg);
+		}
+		
+	    try { horses.saveToFile(); } 
+	    catch (IOException e)
+	    {
+	    	getLogger().log(Level.WARNING, "Error: Failed to save horse data!", e);
+	    }
 	}
 }
