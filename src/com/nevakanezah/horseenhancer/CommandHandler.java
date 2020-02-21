@@ -6,7 +6,10 @@ import java.util.List;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.block.Block;
+import org.bukkit.command.BlockCommandSender;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -382,6 +385,12 @@ public class CommandHandler implements CommandExecutor {
 			sender.sendMessage(ChatColor.RED + "Horse gender required! Use '/he summon help' for more information.");
 			return false;
 		}
+		// Command block callers have to be handled slightly differently.
+		Location sendLoc = new Location(null, 0, 0, 0);
+		if(sender instanceof Player)
+			sendLoc = ((Entity)sender).getLocation();
+		else if(sender instanceof BlockCommandSender)
+			sendLoc = ((BlockCommandSender)sender).getBlock().getLocation().add(0.5, 1, 0.5);
 		
 		AbstractHorse horse;
 		EntityType type;
@@ -426,11 +435,11 @@ public class CommandHandler implements CommandExecutor {
 				break;
 			case "maximule":
 				HorseData maximuleData = new HorseData();
-				SpecialHorses.spawnMaximule(((Entity)sender).getLocation(), maximuleData);
+				SpecialHorses.spawnMaximule(sendLoc, maximuleData);
 				return true;
 			case "invincible":
 				HorseData invincibleData = new HorseData();
-				SpecialHorses.spawnInvincible(((Entity)sender).getLocation(), invincibleData);
+				SpecialHorses.spawnInvincible(sendLoc, invincibleData);
 				return true;
 			case "help":
 				showSummonUsage(sender);
@@ -440,7 +449,7 @@ public class CommandHandler implements CommandExecutor {
 				return false;
 		}
 		
-		horse = (AbstractHorse)((Entity)sender).getWorld().spawnEntity(((Entity)sender).getLocation(), type);
+		horse = (AbstractHorse)sendLoc.getWorld().spawnEntity(sendLoc, type);
 		horse.setTamed(true);
 		horse.setAdult();
 		HorseData horseData = horseList.get(horse.getUniqueId());
