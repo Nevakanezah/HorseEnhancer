@@ -28,16 +28,6 @@ public class HorseEnhancerPlugin extends JavaPlugin {
 	private StorableHashMap<UUID, HorseData> horses = null;
 	
 	private Logger logger = this.getLogger();
-	
-    public HorseEnhancerPlugin()
-    {
-        super();
-    }
-
-    protected HorseEnhancerPlugin(JavaPluginLoader loader, PluginDescriptionFile description, File dataFolder, File file)
-    {
-        super(loader, description, dataFolder, file);
-    }
 
 	@Override
 	public void onDisable() {
@@ -91,6 +81,7 @@ public class HorseEnhancerPlugin extends JavaPlugin {
 		configNames.add("enable-inspector");
 		configNames.add("enable-inspector-attributes");
 		configNames.add("enable-equicide-protection");
+		configNames.add("enable-secret-horses");
 		
 		for(String item : configNames) {
 			if(!this.getConfig().isSet(item)) {
