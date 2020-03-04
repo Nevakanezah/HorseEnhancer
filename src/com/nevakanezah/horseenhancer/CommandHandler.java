@@ -101,7 +101,7 @@ public class CommandHandler implements CommandExecutor {
 
 	private boolean showUsage(CommandSender sender) {
 		if(sender instanceof Player) {
-			sender.sendMessage(ChatColor.DARK_PURPLE + "HorseEnhancer version 0.0.2a by "
+			sender.sendMessage(ChatColor.DARK_PURPLE + "HorseEnhancer version 1.0b by "
 					+ ChatColor.BLUE + "Nev"
 					+ ChatColor.DARK_GREEN + "a"
 					+ ChatColor.GOLD + "ka"
@@ -112,7 +112,7 @@ public class CommandHandler implements CommandExecutor {
 			sender.sendMessage(ChatColor.DARK_PURPLE + "Use " + ChatColor.GREEN +"/horseenhancer help" + ChatColor.DARK_PURPLE + " for a list of commands.");
 		} 
 		if(sender instanceof ConsoleCommandSender) {
-			sender.sendMessage("HorseEnhancer version 0.0.2a by Nevakanezah for MC 1.12.2.");
+			sender.sendMessage("HorseEnhancer version 1.0b by Nevakanezah for MC 1.12.2.");
 			sender.sendMessage("Aliases: horseenhancer, he");
 			sender.sendMessage("Use: 'horseenhancer help' to see a list of commands.");
 		}
