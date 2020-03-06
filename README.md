@@ -4,7 +4,7 @@
 
 ### What is HorseEnhancer?
 Horse enhancer is a light Spigot/Bukkit plugin that modifies the behaviour of horses in Minecraft in order to enhance horse-related gameplay, and enable an equestrian economy.
-The plugin has been tested for Minecraft version 1.12.2.
+The plugin has been tested for Minecraft versions 1.12 - 1.14.
 Improvements include:
 * Horses now have genders, and require compatible mates to procreate.
 * Foal attributes use a more deterministic formula, with a configurable potential for improvement/regression over their parents' attributes.
