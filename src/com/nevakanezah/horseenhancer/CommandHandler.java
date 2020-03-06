@@ -62,6 +62,7 @@ public class CommandHandler implements CommandExecutor {
 				break;
 			case "list":
 			case "ls":
+				plugin.purgeInvalidHorses();
 				result = showList(sender, horseList);
 				break;
 			case "help":
@@ -78,6 +79,7 @@ public class CommandHandler implements CommandExecutor {
 				break;
 			case "inspect":
 			case "i":
+				plugin.purgeInvalidHorses();
 				result = inspectHorse(sender, args);
 				break;
 			case "tp":
@@ -86,10 +88,12 @@ public class CommandHandler implements CommandExecutor {
 				break;
 			case "summon":
 			case "s":
+				plugin.purgeInvalidHorses();
 				result = horseSummon(sender, args);
 				break;
 			case "update":
 			case "u":
+				plugin.purgeInvalidHorses();
 				result = horseUpdate(sender, args);
 				break;
 			default:
