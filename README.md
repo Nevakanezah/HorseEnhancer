@@ -1,4 +1,5 @@
-# HorseEnhancer 
+
+#  ![HorseEnhancer logo](https://www.spigotmc.org/data/resource_icons/75/75692.jpg?1583213795)HorseEnhancer 
 
 ## What is HorseEnhancer?
 Horse enhancer is a light Spigot/Bukkit plugin that modifies the behaviour of horses in Minecraft in order to enhance horse-related gameplay, and enable an equestrian economy.
