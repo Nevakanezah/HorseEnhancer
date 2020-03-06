@@ -105,7 +105,7 @@ public class CommandHandler implements CommandExecutor {
 
 	private boolean showUsage(CommandSender sender) {
 		if(sender instanceof Player) {
-			sender.sendMessage(ChatColor.DARK_PURPLE + "HorseEnhancer version 1.0b by "
+			sender.sendMessage(ChatColor.DARK_PURPLE + "HorseEnhancer version 1.0.1b by "
 					+ ChatColor.BLUE + "Nev"
 					+ ChatColor.DARK_GREEN + "a"
 					+ ChatColor.GOLD + "ka"
@@ -116,7 +116,7 @@ public class CommandHandler implements CommandExecutor {
 			sender.sendMessage(ChatColor.DARK_PURPLE + "Use " + ChatColor.GREEN +"/horseenhancer help" + ChatColor.DARK_PURPLE + " for a list of commands.");
 		} 
 		if(sender instanceof ConsoleCommandSender) {
-			sender.sendMessage("HorseEnhancer version 1.0b by Nevakanezah for MC 1.12.2.");
+			sender.sendMessage("HorseEnhancer version 1.0.1b by Nevakanezah for MC 1.12.2.");
 			sender.sendMessage("Aliases: horseenhancer, he");
 			sender.sendMessage("Use: 'horseenhancer help' to see a list of commands.");
 		}
@@ -124,13 +124,9 @@ public class CommandHandler implements CommandExecutor {
 	}
 	
 	private boolean pluginReload(CommandSender sender) {
-		ArrayList<String> msg = (ArrayList<String>) plugin.loadConfig();
-		for(String m : msg) {
-			if(sender instanceof Player)
-				sender.sendMessage(ChatColor.GREEN + m);
-			if(sender instanceof ConsoleCommandSender)
-				sender.sendMessage(m);
-		}
+		String msg = plugin.loadConfig();
+		if(sender instanceof CommandSender)
+			sender.sendMessage(ChatColor.GREEN + msg);
 		return true;
 	}
 	

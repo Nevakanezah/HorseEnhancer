@@ -1,12 +1,11 @@
 package com.nevakanezah.horseenhancer;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import com.nevakanezah.horseenhancer.util.StorableHashMap;
 
@@ -61,42 +60,29 @@ public class HorseEnhancerPlugin extends JavaPlugin {
 		this.getCommand("horseenhancer").setTabCompleter(new TabComplete());
 	}
 
-	public List<String> loadConfig() {
+	public String loadConfig() {
 		
-		ArrayList<String> msg = new ArrayList<>();
+		FileConfiguration config = this.getConfig();
 		
-		this.reloadConfig();
+		config.options().header("HorseEnhancer by Nevakanezah\n\n For info on the configs, see https://pastebin.com/Q623SBwY");
 		
-		// Populate any options missing from config
-		ArrayList<String> configNames = new ArrayList<>();
-		configNames.add("gelding-tool");
-		configNames.add("inspection-tool");
-		configNames.add("childskew-upper");
-		configNames.add("childskew-lower");
-		configNames.add("gender-ratio");
-		configNames.add("enable-inspector");
-		configNames.add("enable-inspector-attributes");
-		configNames.add("enable-equicide-protection");
-		configNames.add("enable-secret-horses");
+		config.addDefault("gelding-tool", "shears");
+		config.addDefault("inspection-tool", "watch");
+		config.addDefault("childskew-upper", 0.05);
+		config.addDefault("childskew-lower", -0.1);
+		config.addDefault("gender-ratio", 0.125);
+		config.addDefault("enable-inspector", true);
+		config.addDefault("enable-inspector-attributes", true);
+		config.addDefault("enable-equicide-protection", true);
+		config.addDefault("enable-secret-horses", true);
 		
-		for(String item : configNames) {
-			if(!this.getConfig().isSet(item)) {
-				logger.log(Level.INFO, "Setting config: [" + item + "]");
-				this.getConfig().set(
-						item, this.getConfig().getDefaults().getString(item));
-				this.saveConfig();
-			}
-		}
+		
+		config.options().copyDefaults(true);
+		saveConfig();
 		
 		// Clamp the skew values between -1 and 1, and ensure that upper is >= lower.
-		double upper = this.getConfig().getDouble("childskew-upper");
-		double lower = this.getConfig().getDouble("childskew-lower");
-		
-		if(upper > 1.0)
-			this.getConfig().set("childskew-upper", Math.min( 1.0, upper));
-		
-		if(lower < -1.0)
-			this.getConfig().set("childskew-lower", Math.max( -1.0, lower));
+		double upper = config.getDouble("childskew-upper");
+		double lower = config.getDouble("childskew-lower");
 		
 		if(lower > upper) {
 			if(lower <= 0)
@@ -105,16 +91,23 @@ public class HorseEnhancerPlugin extends JavaPlugin {
 			  lower = upper;
 		}
 		
+		if(upper > 1.0)
+			config.set("childskew-upper", Math.min( 1.0, upper));
+		
+		if(lower < -1.0)
+			config.set("childskew-lower", Math.max( -1.0, lower));
+		
 		logger.log(Level.INFO, "Loaded stat skew: [" + lower + " - " + upper + "]");
 		
-		double genderRatio = Math.max( 0.0, Math.min( 1.0, this.getConfig().getDouble("gender-ratio")));
-		this.getConfig().set("gender-ratio", genderRatio);
+		double genderRatio = Math.max( 0.0, Math.min( 1.0, config.getDouble("gender-ratio")));
+		config.set("gender-ratio", genderRatio);
 		
 		logger.log(Level.INFO, "Loaded gender ratio with value of [" + genderRatio + "]");
-		logger.log(Level.INFO, "Gelding tool is [" + this.getConfig().getString("gelding-tool") + "]");
-		logger.log(Level.INFO, "Inspection tool is [" + this.getConfig().getString("inspection-tool") + "]");
+		logger.log(Level.INFO, "Gelding tool is [" + config.getString("gelding-tool") + "]");
+		logger.log(Level.INFO, "Inspection tool is [" + config.getString("inspection-tool") + "]");
 		
-		msg.add("[" + this.getDescription().getName() + "] configuration loaded.");
+		String msg = "HorseEnhancer configuration loaded successfully.";
+		logger.log(Level.INFO, msg);
 		
 		return msg;
 	}
