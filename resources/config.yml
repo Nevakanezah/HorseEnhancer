@@ -8,9 +8,9 @@
 # Modules
 
 ## Toggle the ability to inspect horses. Ops will always have this ability.
-## On - All players can inspect any horse.
+## True - All players can inspect any horse.
 ## Restrict - Only a horse's owner can inspect it.
-## Off - Disable horse inspection.
+## False - Disable horse inspection.
 enable-inspector: true
 
 ## When inspecting a horse, players see attribute info like speed & jump height.

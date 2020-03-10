@@ -7,6 +7,13 @@ import java.util.logging.Logger;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import com.nevakanezah.horseenhancer.data.HorseData;
+import com.nevakanezah.horseenhancer.listeners.HorseDeathEventListener;
+import com.nevakanezah.horseenhancer.listeners.HorseGeldingListener;
+import com.nevakanezah.horseenhancer.listeners.HorseInspectionListener;
+import com.nevakanezah.horseenhancer.listeners.HorseSpawnEventListener;
+import com.nevakanezah.horseenhancer.listeners.HorseTameEventListener;
 import com.nevakanezah.horseenhancer.util.StorableHashMap;
 
 /**
@@ -34,6 +41,8 @@ public class HorseEnhancerPlugin extends JavaPlugin {
 		saveDefaultConfig();
 		loadConfig();
 		
+		FileConfiguration config = this.getConfig();
+		
 		try { horses = new StorableHashMap<>(this.getDataFolder(), "Horses"); }
 		catch (IOException e)
 		{
@@ -49,10 +58,15 @@ public class HorseEnhancerPlugin extends JavaPlugin {
 	    String msg = "Successfully loaded [" + horses.size() +"] horses.";
 	    getLogger().log(Level.INFO, msg);
 	    
-		getServer().getPluginManager().registerEvents(new PlayerAttackHorseEventHandler(this), this);
-		getServer().getPluginManager().registerEvents(new HorseTameEventHandler(this), this);
-		getServer().getPluginManager().registerEvents(new HorseDeathEventHandler(this), this);
-		getServer().getPluginManager().registerEvents(new HorseSpawnEventHandler(this), this);
+		getServer().getPluginManager().registerEvents(new HorseTameEventListener(this), this);
+		getServer().getPluginManager().registerEvents(new HorseDeathEventListener(this), this);
+		getServer().getPluginManager().registerEvents(new HorseSpawnEventListener(this), this);
+		getServer().getPluginManager().registerEvents(new HorseGeldingListener(this), this);
+		
+		if(!(config.getString("enable-inspector").toLowerCase().equalsIgnoreCase("false")))
+			getServer().getPluginManager().registerEvents(new HorseInspectionListener(this), this);
+		if(config.getBoolean("enable-equicide-protection"))
+			getServer().getPluginManager().registerEvents(new HorseSpawnEventListener(this), this);
 		
 		this.getCommand("he").setExecutor(new CommandHandler(this));
 		this.getCommand("horseenhancer").setExecutor(new CommandHandler(this));

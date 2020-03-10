@@ -1,4 +1,4 @@
-package com.nevakanezah.horseenhancer.util;
+package com.nevakanezah.horseenhancer.data;
 
 import org.bukkit.EntityEffect;
 import org.bukkit.Location;
@@ -8,13 +8,11 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import com.nevakanezah.horseenhancer.HorseData;
-
 import net.md_5.bungee.api.ChatColor;
 
-public class SpecialHorses {
+public class SecretHorses {
 	
-	private SpecialHorses() {
+	private SecretHorses() {
 		super();
 	}
 	

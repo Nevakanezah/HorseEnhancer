@@ -1,4 +1,4 @@
-package com.nevakanezah.horseenhancer;
+package com.nevakanezah.horseenhancer.listeners;
 
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Entity;
@@ -7,11 +7,14 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityTameEvent;
 
-public class HorseTameEventHandler implements Listener {
+import com.nevakanezah.horseenhancer.HorseEnhancerPlugin;
+import com.nevakanezah.horseenhancer.data.HorseData;
+
+public class HorseTameEventListener implements Listener {
 
 	private final HorseEnhancerPlugin plugin;
 	
-	public HorseTameEventHandler(HorseEnhancerPlugin plugin) {
+	public HorseTameEventListener(HorseEnhancerPlugin plugin) {
 		this.plugin = plugin;
 	}
 

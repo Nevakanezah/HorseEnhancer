@@ -19,8 +19,9 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Llama;
 import org.bukkit.entity.Player;
 
+import com.nevakanezah.horseenhancer.data.HorseData;
+import com.nevakanezah.horseenhancer.data.SecretHorses;
 import com.nevakanezah.horseenhancer.util.ArgumentParser;
-import com.nevakanezah.horseenhancer.util.SpecialHorses;
 import com.nevakanezah.horseenhancer.util.StorableHashMap;
 
 import net.md_5.bungee.api.ChatColor;
@@ -434,11 +435,11 @@ public class CommandHandler implements CommandExecutor {
 				break;
 			case "maximule":
 				HorseData maximuleData = new HorseData();
-				SpecialHorses.spawnMaximule(sendLoc, maximuleData);
+				SecretHorses.spawnMaximule(sendLoc, maximuleData);
 				return true;
 			case "invincible":
 				HorseData invincibleData = new HorseData();
-				SpecialHorses.spawnInvincible(sendLoc, invincibleData);
+				SecretHorses.spawnInvincible(sendLoc, invincibleData);
 				return true;
 			case "help":
 				showSummonUsage(sender);

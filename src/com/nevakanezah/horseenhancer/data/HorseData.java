@@ -1,4 +1,4 @@
-package com.nevakanezah.horseenhancer;
+package com.nevakanezah.horseenhancer.data;
 
 import java.util.UUID;
 

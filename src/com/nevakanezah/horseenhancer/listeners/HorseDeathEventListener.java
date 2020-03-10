@@ -1,4 +1,4 @@
-package com.nevakanezah.horseenhancer;
+package com.nevakanezah.horseenhancer.listeners;
 
 import java.util.UUID;
 
@@ -7,14 +7,16 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 
+import com.nevakanezah.horseenhancer.HorseEnhancerPlugin;
+import com.nevakanezah.horseenhancer.data.HorseData;
 import com.nevakanezah.horseenhancer.util.StorableHashMap;
 
-public class HorseDeathEventHandler implements Listener {
+public class HorseDeathEventListener implements Listener {
 	
 	private final HorseEnhancerPlugin plugin;
 	private StorableHashMap<UUID, HorseData> horseList;
 
-	public HorseDeathEventHandler(HorseEnhancerPlugin plugin) {
+	public HorseDeathEventListener(HorseEnhancerPlugin plugin) {
 		this.plugin = plugin;
 		horseList = plugin.getHorses();
 	}

@@ -1,4 +1,4 @@
-package com.nevakanezah.horseenhancer;
+package com.nevakanezah.horseenhancer.listeners;
 
 import java.util.Arrays;
 import java.util.List;
@@ -23,12 +23,14 @@ import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.event.entity.EntityBreedEvent;
 
-import com.nevakanezah.horseenhancer.util.SpecialHorses;
+import com.nevakanezah.horseenhancer.HorseEnhancerPlugin;
+import com.nevakanezah.horseenhancer.data.HorseData;
+import com.nevakanezah.horseenhancer.data.SecretHorses;
 import com.nevakanezah.horseenhancer.util.StorableHashMap;
 
 import net.md_5.bungee.api.ChatColor;
 
-public class HorseSpawnEventHandler implements Listener {
+public class HorseSpawnEventListener implements Listener {
 	private final HorseEnhancerPlugin plugin;
 	private StorableHashMap<UUID, HorseData> horseList;
 	
@@ -36,7 +38,7 @@ public class HorseSpawnEventHandler implements Listener {
 	static final String MAX_HEALTH = "GENERIC_MAX_HEALTH";
 	static final String JUMP_STRENGTH = "HORSE_JUMP_STRENGTH";
 
-	public HorseSpawnEventHandler(HorseEnhancerPlugin plugin) {
+	public HorseSpawnEventListener(HorseEnhancerPlugin plugin) {
 		this.plugin = plugin;
 		horseList = plugin.getHorses();
 	}
@@ -49,7 +51,7 @@ public class HorseSpawnEventHandler implements Listener {
 		if(!((event).getBreeder() instanceof Player))
 			return;	
 		
-		AbstractHorse horse = (AbstractHorse)event.getEntity();
+		AbstractHorse horse = (AbstractHorse) event.getEntity();
 		AbstractHorse father = (AbstractHorse) event.getFather();
 		AbstractHorse mother = (AbstractHorse) event.getMother();
 		
@@ -146,7 +148,7 @@ public class HorseSpawnEventHandler implements Listener {
 			Location loc = mother.getLocation();
 			child.remove();
 			
-			AbstractHorse newChild = SpecialHorses.spawnInbred(loc, childData);
+			AbstractHorse newChild = SecretHorses.spawnInbred(loc, childData);
 			
 			registerHorse(newChild.getUniqueId(), childData);
 			return null;
@@ -196,7 +198,7 @@ public class HorseSpawnEventHandler implements Listener {
 		// Determine the range of likely colours, then skew it by -1, 0, or 1
 		i = Math.max( 0, Math.min( 6
 				, ThreadLocalRandom.current().nextInt(min, max+1)
-				+ (int)(ThreadLocalRandom.current().nextDouble(-1, 1))));
+				+ ThreadLocalRandom.current().nextInt(-1, 1)));
 		
 		return ha.get(i);
 	}
@@ -301,12 +303,12 @@ public class HorseSpawnEventHandler implements Listener {
 			child.remove();
 		
 		if(maximule) {
-			SpecialHorses.spawnMaximule(loc, childData);
+			SecretHorses.spawnMaximule(loc, childData);
 			specialHorseSpawned = true;
 		}
 		
 		if(invincible) {
-			SpecialHorses.spawnInvincible(loc, childData);
+			SecretHorses.spawnInvincible(loc, childData);
 			specialHorseSpawned = true;
 		}
 

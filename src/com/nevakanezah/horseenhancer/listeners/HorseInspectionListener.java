@@ -1,39 +1,36 @@
-package com.nevakanezah.horseenhancer;
+package com.nevakanezah.horseenhancer.listeners;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.UUID;
 
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Llama;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Tameable;
-import org.bukkit.entity.Vehicle;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
+import com.nevakanezah.horseenhancer.HorseEnhancerPlugin;
+import com.nevakanezah.horseenhancer.data.HorseData;
 import com.nevakanezah.horseenhancer.util.StorableHashMap;
 
 import net.md_5.bungee.api.ChatColor;
 
-public class PlayerAttackHorseEventHandler implements Listener {
-
+public class HorseInspectionListener implements Listener {
+	
 	private final HorseEnhancerPlugin plugin;
 	private StorableHashMap<UUID, HorseData> horseList;
 	
-	private static final String GELD_TOOL = "gelding-tool";
 	private static final String INSPECT_TOOL = "inspection-tool";
 	private static final String GENDER_RATIO = "gender-ratio";
 
-	public PlayerAttackHorseEventHandler(HorseEnhancerPlugin plugin) {
+	public HorseInspectionListener(HorseEnhancerPlugin plugin) {
 		this.plugin = plugin;
 		horseList = plugin.getHorses();
 	}
@@ -42,32 +39,20 @@ public class PlayerAttackHorseEventHandler implements Listener {
 	@EventHandler(ignoreCancelled = true)
 	public void onDamageHorseEvent(EntityDamageByEntityEvent event) {
 		final Entity eventEntity = event.getEntity();
+		final Player player = (Player) event.getDamager();
+		final AbstractHorse horse = (AbstractHorse)eventEntity;
+		HorseData horseData = getOrRegisterData(horse);
 		
-		if(!(eventEntity instanceof AbstractHorse) 
-			&& !(eventEntity instanceof Vehicle)
-			&& !(event.getDamager() instanceof Player || event.getDamager() instanceof Projectile))
-	      return;
-	    
-		boolean equicideProtection = plugin.getConfig().getBoolean("enable-equicide-protection");
-	    if(event.getCause().equals(DamageCause.PROJECTILE) && equicideProtection && ((Projectile)event.getDamager()).getShooter() instanceof Player)
-	    	handleFriendlyFire(event);
-		
-		// Pigs get out. Also, no inspecting animals with riders.
+		// No inspecting animals with riders.
 		if(!(eventEntity instanceof AbstractHorse)
 			|| !(event.getCause().equals(DamageCause.ENTITY_ATTACK))
 			|| !eventEntity.isEmpty())
 				return;
-
-		final Player player = (Player) event.getDamager();
 		
-		// Only catch interactions with configured interaction items
-		HashMap<String, Material> items = new HashMap<>();
-		items.put(GELD_TOOL, Material.matchMaterial(plugin.getConfig().getString(GELD_TOOL)));
-		items.put(INSPECT_TOOL, Material.matchMaterial(plugin.getConfig().getString(INSPECT_TOOL)));
-		
+		// Only catch interactions with configured inspection item
 		Material heldItem = player.getInventory().getItemInMainHand().getType();
-		
-		if(!(items.containsValue(heldItem)))
+		Material inspectItem = Material.matchMaterial(plugin.getConfig().getString(INSPECT_TOOL));
+		if(!(inspectItem.equals(heldItem)) || player.isSneaking())
 			return;
 		
 		// Only interactions with registered horses
@@ -75,20 +60,8 @@ public class PlayerAttackHorseEventHandler implements Listener {
 			player.sendMessage(ChatColor.RED + "You can't do that to a wild horse!");
 			return;
 		}
-		
-		final AbstractHorse horse = (AbstractHorse)eventEntity;
-		HorseData horseData = getOrRegisterData(horse);
-		
-		// When holding the gelding tool, attempt gelding
-		if(heldItem.equals(items.get(GELD_TOOL)) && (player.isSneaking())) {
-			event.setCancelled(true);
-			handleGelding(player, horse, horseData);
-		}
 			
-		// When holding the inspection tool, report horse stats to the player
-		if(heldItem.equals(items.get(INSPECT_TOOL)) && !(player.isSneaking())) {
-			handleInspection(player, horse, horseData, event);
-		}
+		handleInspection(player, horse, horseData, event);
 	}
 	
 	private HorseData getOrRegisterData(AbstractHorse horse) {
@@ -100,61 +73,16 @@ public class PlayerAttackHorseEventHandler implements Listener {
 		return horseData;
 	}
 	
-	private void handleFriendlyFire(EntityDamageByEntityEvent event){
-		final Entity eventEntity = event.getEntity();
-		Player shooter = (Player)((Projectile)event.getDamager()).getShooter();
-		
-		if(eventEntity.getPassengers().contains(shooter)) {
-			event.setDamage(0);
-			event.setCancelled(true);
-		}
-	}
-	
-	private void handleGelding(Player player, AbstractHorse horse, HorseData horseData) {
-		String horseName = horseData.getHorseID();
-		// Cancel gelding for untamed, registered horses like foals
-		if(!(horse.isTamed()) || horse.getOwner() == null){
-			player.sendMessage(ChatColor.RED + "You can't do that to a wild horse!");
-			return;
-		}
-		
-		if(horse.getOwner().equals(player)){
-			if(horseData.geld()) {
-				player.sendMessage(ChatColor.GREEN + "Successfully gelded " + horseName + "!");
-				player.getWorld().playSound(player.getLocation(), Sound.ENTITY_SHEEP_SHEAR, 1, 1);
-				player.getWorld().playSound(player.getLocation(), Sound.ENTITY_HORSE_DEATH, 0.3f, 1.3f);
-				player.getWorld().playSound(player.getLocation(), Sound.ENTITY_SHEEP_SHEAR, 1, 1);
-				short durability = player.getInventory().getItemInMainHand().getDurability();
-				if(player.getInventory().getItemInMainHand().getType().getMaxDurability() > 0) 
-					durability++;
-				player.getInventory().getItemInMainHand().setDurability(durability);
-				player.playSound(player.getLocation(), Sound.ENTITY_SHEEP_SHEAR, 100, 80);
-			}
-			else
-				player.sendMessage(ChatColor.RED + "Failed to geld " + horseName + ChatColor.RED + " - Target is not male.");
-		}
-		else
-			player.sendMessage(ChatColor.RED + "That's not your horse!");
-	}
-	
 	private void handleInspection(Player player, AbstractHorse horse, HorseData horseData, EntityDamageByEntityEvent event) {
 		final String INSPECTOR_TOGGLE = plugin.getConfig().getString("enable-inspector").toLowerCase();
 		
-		if(!player.isOp()) { 
-			switch(INSPECTOR_TOGGLE) {
-			case "false":
-				return;
-			case "restrict":
-				if(!(horse.getOwner().equals(player))) {
-					event.setCancelled(true);
-					player.sendMessage(ChatColor.RED + "That's not your horse!");
-				}
-				return;
-			case "true":
-				break;
-			default:
-				return;
-			}
+		// In 'restrict' mode, a horse can only be inspected by its owner, and ops
+		if(!player.isOp()
+				&& INSPECTOR_TOGGLE.equals("restrict") 
+				&& !(horse.getOwner().equals(player))) { 
+			event.setCancelled(true);
+			player.sendMessage(ChatColor.RED + "That's not your horse!");
+			return;
 		}
 
 		// Cancel the triggering event
@@ -202,5 +130,4 @@ public class PlayerAttackHorseEventHandler implements Listener {
 	      player.sendMessage(m);
 	    }
 	}
-	
 }
