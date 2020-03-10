@@ -1,8 +1,10 @@
-# HorseEnhancer 
 
-## What is HorseEnhancer?
+#  ![HorseEnhancer logo](https://www.spigotmc.org/data/resource_icons/75/75692.jpg?1583213795) HorseEnhancer by Nevakanezah
+*All-natural horse enhancement, adding horse genders, lineage tracking, better breeding, and powerful commands!*
+
+### What is HorseEnhancer?
 Horse enhancer is a light Spigot/Bukkit plugin that modifies the behaviour of horses in Minecraft in order to enhance horse-related gameplay, and enable an equestrian economy.
-The plugin has been tested for Minecraft version 1.12.2.
+The plugin has been tested for Minecraft versions 1.12 - 1.14.
 Improvements include:
 * Horses now have genders, and require compatible mates to procreate.
 * Foal attributes use a more deterministic formula, with a configurable potential for improvement/regression over their parents' attributes.
@@ -12,13 +14,13 @@ Improvements include:
 * Horses track who their parents are, and inbreeding is... inadvisable.
 * Disables shooting your own mount in the back of the head.
 
-## How to install
+### How to install
 Download the latest HorseEnhancer jar file, and copy it into your plugins folder.
 
-## Issues
+### Issues
 For bug reports and feature suggestions, please [submit an issue via GitHub.](https://github.com/Nevakanezah/HorseEnhancer/issues)
 
-## Future Releases
+### Future Releases
 The following features are planned for addition in later updates to the plugin:
 * Permissions support.
 * Horse tamer can control who may ride their horse, or transfer ownership.
