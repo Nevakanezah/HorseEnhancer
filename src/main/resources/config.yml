@@ -1,0 +1,40 @@
+#---------------------------------------------------------------------------------
+# HorseEnhancer Configuration file
+# Version 1.0 for MC 1.12.2
+# 
+# HorseEnhancer written by Nevakanezah
+#---------------------------------------------------------------------------------
+
+# Modules
+
+## Toggle the ability to inspect horses. Ops will always have this ability.
+## True - All players can inspect any horse.
+## Restrict - Only a horse's owner can inspect it.
+## False - Disable horse inspection.
+enable-inspector: true
+
+## When inspecting a horse, players see attribute info like speed & jump height.
+enable-inspector-attributes: true
+
+## Whether you can shoot an animal you're currently riding. Mostly applies to pigs.
+enable-equicide-protection: true
+
+## Enable easter egg horses with unique breeding conditions, and custom stats.
+enable-secret-horses: true
+
+# Tools
+
+gelding-tool: shears
+inspection-tool: watch
+
+# Breeding
+
+## Upper boundary by which child stats are skewed, as a numerical percentage between -1 and 1
+## Horse stats are determined by selecting a random point between the stats of both parents.
+## From that point, the child's stats can skew up or down, potentially beyond their parents' values.
+## These values set how much a child can skew up or down, as a percentage value between -1 and 1.
+childskew-upper: 0.05
+childskew-lower: -0.1
+
+## Male-Female ratio for horse population, from 0-1. A lower value makes males less common
+gender-ratio: 0.125

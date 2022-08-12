@@ -1,0 +1,7 @@
+name: HorseEnhancer
+main: com.nevakanezah.horseenhancer.HorseEnhancerPlugin
+version: 1.0-beta1-MC1.12.2
+commands:
+  horseenhancer:
+    description: Reload the plugin without restarting the server.
+    aliases: [he]
