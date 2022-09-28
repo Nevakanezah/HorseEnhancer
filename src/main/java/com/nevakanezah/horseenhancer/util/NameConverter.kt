@@ -1,4 +1,6 @@
-package com.nevakanezah.horseenhancer.util;
+package com.nevakanezah.horseenhancer.util
+
+import java.util.StringJoiner
 
 /**
  * Convert integer IDs into human-readable names.
@@ -38,44 +40,48 @@ package com.nevakanezah.horseenhancer.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-public class NameConverter {
-	private NameConverter(){}
-	
-	static final char[] uint2consonant = {
-			'b', 'd', 'f', 'g',
-			'h', 'j', 'k', 'l',
-			'm', 'n', 'p', 'r',
-			's', 't', 'v', 'z'
-	};
+object NameConverter {
+    private val uint2consonant = charArrayOf(
+        'b', 'd', 'f', 'g',
+        'h', 'j', 'k', 'l',
+        'm', 'n', 'p', 'r',
+        's', 't', 'v', 'z'
+    )
 
-	/** Map uints to vowels. */
-	static final char[] uint2vowel = {
-			'a', 'i', 'o', 'u'
-	};
+    private val uint2vowel = charArrayOf(
+        'a', 'i', 'o', 'u'
+    )
 
-	public static void uint2quint(StringBuilder quint /*output*/, int i, char sepChar)
-	{
-		// http://docs.oracle.com/javase/tutorial/java/nutsandbolts/opsummary.html
-		// ">>>" Unsigned right shift
-		int j;
+    fun uint2quint(i: UInt, sepChar: Char = '-'): String {
+        val sj = StringJoiner(sepChar.toString())
 
-		final int MASK_FIRST4 = 0xF0000000;
-		final int MASK_FIRST2 = 0xC0000000;
+        fun convertShortToName(short: UShort): String {
+            val sb = StringBuilder(5)
+            val maskConsonant = 0b1111u
+            val maskVowel = 0b11u
 
-		j = i & MASK_FIRST4; i <<= 4; j >>>= 28; quint.append(Character.toUpperCase(uint2consonant[j]));
-		j = i & MASK_FIRST2; i <<= 2; j >>>= 30; quint.append(uint2vowel[j]);
-		j = i & MASK_FIRST4; i <<= 4; j >>>= 28; quint.append(uint2consonant[j]);
-		j = i & MASK_FIRST2; i <<= 2; j >>>= 30; quint.append(uint2vowel[j]);
-		j = i & MASK_FIRST4; i <<= 4; j >>>= 28; quint.append(uint2consonant[j]);
+            var offsetBitsLeft = 0
 
-		if (sepChar != -1) {
-			quint.append(((char) sepChar));
-		}
+            fun addReplacement(chars: CharArray, mask: UInt) {
+                val maskSize = Int.SIZE_BITS - mask.countLeadingZeroBits()
+                val maskOffset = UShort.SIZE_BITS - maskSize - offsetBitsLeft
+                val maskedValue = (short.toUInt() shr maskOffset) and mask
+                sb.append(chars[maskedValue.toInt()])
+                offsetBitsLeft += maskSize
+            }
 
-		j = i & MASK_FIRST4; i <<= 4; j >>>= 28; quint.append(Character.toUpperCase(uint2consonant[j]));
-		j = i & MASK_FIRST2; i <<= 2; j >>>= 30; quint.append(uint2vowel[j]);
-		j = i & MASK_FIRST4; i <<= 4; j >>>= 28; quint.append(uint2consonant[j]);
-		j = i & MASK_FIRST2; i <<= 2; j >>>= 30; quint.append(uint2vowel[j]);
-		j = i & MASK_FIRST4; j >>>= 28; quint.append(uint2consonant[j]);
-	}
+            addReplacement(uint2consonant, maskConsonant)
+            addReplacement(uint2vowel, maskVowel)
+            addReplacement(uint2consonant, maskConsonant)
+            addReplacement(uint2vowel, maskVowel)
+            addReplacement(uint2consonant, maskConsonant)
+
+            return sb.toString()
+        }
+
+        sj.add(convertShortToName((i shr 16).toUShort()))
+        sj.add(convertShortToName(i.toUShort()))
+
+        return sj.toString()
+    }
 }
