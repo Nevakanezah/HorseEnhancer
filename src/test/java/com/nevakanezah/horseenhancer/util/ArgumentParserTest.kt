@@ -1,6 +1,6 @@
 package com.nevakanezah.horseenhancer.util
 
-import org.junit.jupiter.api.Test
+import org.junit.Test
 import kotlin.test.assertContentEquals
 
 internal class ArgumentParserTest {

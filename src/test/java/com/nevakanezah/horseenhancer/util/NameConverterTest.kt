@@ -1,8 +1,7 @@
 package com.nevakanezah.horseenhancer.util
 
-import org.junit.jupiter.api.Test
-
-import org.junit.jupiter.api.Assertions.*
+import org.junit.Test
+import kotlin.test.assertEquals
 
 internal class NameConverterTest {
     @Test

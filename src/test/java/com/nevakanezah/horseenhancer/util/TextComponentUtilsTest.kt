@@ -3,7 +3,7 @@ package com.nevakanezah.horseenhancer.util
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.plus
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.chat.TextComponent
-import org.junit.jupiter.api.Test
+import org.junit.Test
 import kotlin.test.assertEquals
 
 internal class TextComponentUtilsTest {
