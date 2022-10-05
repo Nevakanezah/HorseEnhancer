@@ -21,5 +21,5 @@ sealed class Subcommand(
 
     abstract suspend fun onCommand(sender: CommandSender, command: Command, label: String, args: List<String>)
 
-    open suspend fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: Array<out String>): List<String>? = null
+    open suspend fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: List<String>): List<String>? = null
 }

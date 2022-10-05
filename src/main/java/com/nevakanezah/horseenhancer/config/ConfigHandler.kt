@@ -3,6 +3,8 @@ package com.nevakanezah.horseenhancer.config
 import com.nevakanezah.horseenhancer.HorseEnhancerMain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.yaml.snakeyaml.DumperOptions
+import org.yaml.snakeyaml.Yaml
 import space.arim.dazzleconf.ConfigurationOptions
 import space.arim.dazzleconf.error.ConfigFormatSyntaxException
 import space.arim.dazzleconf.error.InvalidConfigException
@@ -15,9 +17,6 @@ import java.util.logging.Level
 class ConfigHandler(private val main: HorseEnhancerMain) {
     private val configFileName = "config.yml"
 
-    var data: Config = fetchConfigData()
-        private set
-
     private val configHelper = ConfigurationHelper(
         main.dataFolder.toPath(),
         configFileName,
@@ -25,15 +24,18 @@ class ConfigHandler(private val main: HorseEnhancerMain) {
             Config::class.java,
             ConfigurationOptions.defaults(),
             SnakeYamlOptions.Builder()
-                .commentMode(CommentMode.fullComments())
-                /*.yamlSupplier { Yaml(DumperOptions().apply {
+                .commentMode(CommentMode.alternativeWriter("# %s"))
+                .yamlSupplier { Yaml(DumperOptions().apply {
                     indent = 2
                     isPrettyFlow = true
                     defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
-                }) }*/
+                }) }
                 .build()
         )
     )
+
+    var data: Config = fetchConfigData()
+        private set
 
     // Handles normal exceptions
     private fun fetchConfigData(): Config {

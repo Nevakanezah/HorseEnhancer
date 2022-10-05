@@ -136,6 +136,6 @@ class CommandHandler(private val main: HorseEnhancerMain) : SuspendingCommandExe
                 .toList()
 
         return subcommands.find { it.name.equals(args[0], true) || it.aliases.any { alias -> alias.equals(args[0], true) } }
-            ?.onTabComplete(sender, command, alias, args)
+            ?.onTabComplete(sender, command, alias, args.asList().let { it.subList(1, it.size) })
     }
 }

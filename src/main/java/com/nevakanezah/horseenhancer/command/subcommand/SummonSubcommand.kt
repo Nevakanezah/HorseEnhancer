@@ -14,6 +14,7 @@ import com.nevakanezah.horseenhancer.util.TextComponentUtils.ColouredTextCompone
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.CommandTextComponent
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.plus
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.shortestAlias
+import com.nevakanezah.horseenhancer.util.TextComponentUtils.subList
 import kotlinx.coroutines.flow.firstOrNull
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.chat.BaseComponent
@@ -33,7 +34,30 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
 
     main = main
 ) {
+    private val database: SQLiteDatabase = Bukkit.getServicesManager().load(SQLiteDatabase::class.java)!!
+
     companion object {
+        private val horseGenders = sequenceOf("stallion", "mare", "gelding", "mule", "jenny", "jack", "dam", "herdsire", "skeleton", "zombie",)
+        private data class Argument(
+            val flag: String,
+            val name: String,
+            val description: String,
+            val hint: String? = null,
+            val updateMode: Boolean = false,
+            val tabCompleter: ((String) -> List<String>)? = null
+        )
+        private val arguments = listOf(
+            //"g", "s", "j", "h", "o", "f", "m", "l"
+            Argument("g", "gender", "Change the horse's gender.", updateMode = true) { input -> horseGenders.filter { it.startsWith(input, ignoreCase = true) }.toList() },
+            Argument("s", "speed", "Decimal value for horse speed.", "[0.1125 - 0.3375]"),
+            Argument("j", "jump", "Decimal value for horse jump strength.", "[0.4 - 1.0]"),
+            Argument("h", "health", "Decimal value for horse max HP.", "[15.0 - 30.0]"),
+            Argument("o", "owner", "Name of a player to become the horse's tamer.") { input -> Bukkit.getOnlinePlayers().asSequence().map { it.name }.filter { it.startsWith(input, ignoreCase = true) }.toList() },
+            Argument("f", "father", "HorseID or customName of the horse's father."),
+            Argument("m", "mother", "HorseID or customName of the horse's mother."),
+            Argument("l", "strength", "Llama-only integer strength attribute.", "[1 - 5]"),
+        )
+
         fun Subcommand.generateSummonHelpTexts(command: Command, updateMode: Boolean): List<BaseComponent> {
             val messages = mutableListOf<BaseComponent>()
 
@@ -56,15 +80,13 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
                 messages += ColouredTextComponent("-$flag ${CommandHandler.requiredParameter(parameterName)} ", ChatColor.AQUA) +
                     ColouredTextComponent(description, ChatColor.YELLOW)
             }
-            if (updateMode)
-                addArgument("g", "gender", "Change the horse's gender.")
-            addArgument("s", "speed", "Decimal value for horse speed.")
-            addArgument("j", "jump", "Decimal value for horse jump strength.")
-            addArgument("h", "health", "Decimal value for horse max HP.")
-            addArgument("o", "owner", "Name of a player to become the horse's tamer.")
-            addArgument("f", "father", "HorseID or customName of the horse's father.")
-            addArgument("m", "mother", "HorseID or customName of the horse's mother.")
-            addArgument("l", "strength", "Llama-only integer strength attribute.")
+
+            for (argument in arguments) {
+                if (!updateMode && argument.updateMode)
+                    continue
+                addArgument(argument.flag, argument.name, argument.description + argument.hint?.let { " $it" }.orEmpty())
+            }
+
             return messages
         }
 
@@ -172,11 +194,11 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
 
                         "f" -> {
                             // fixme Needs to handle multiple results
-                            horseData.fatherUid = getHorse()?.second?.uniqueId ?: return@zipWithNext
+                            horseData.fatherUid = getHorse()?.second?.uniqueId?.toString() ?: return@zipWithNext
                         }
 
                         "m" -> {
-                            horseData.motherUid = getHorse()?.second?.uniqueId ?: return@zipWithNext
+                            horseData.motherUid = getHorse()?.second?.uniqueId?.toString() ?: return@zipWithNext
                         }
 
                         "l" -> {
@@ -202,6 +224,24 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
                     processedNext = true
                 }
             }
+        }
+
+        fun processHorseModificationTabComplete(sender: CommandSender, command: Command, alias: String, args: List<String>, updateMode: Boolean): List<String> {
+            val argsFlags = arguments.asSequence()
+                .filter { updateMode || !it.updateMode }
+                .map { "-" + it.flag }
+
+            if (args.size == 1)
+                return argsFlags
+                    .filter { it.startsWith(args[0], ignoreCase = true) }
+                    .toList()
+
+            val previousArg = args[args.size - 2]
+            if (previousArg.startsWith('-')) {
+                val matchedArg = arguments.find { "-" + it.flag == previousArg }
+                return matchedArg?.tabCompleter?.invoke(args.last()) ?: emptyList()
+            }
+            return argsFlags.filterNot { it in args }.filter { it.startsWith(args.last(), ignoreCase = true) }.toList()
         }
     }
 
@@ -243,7 +283,7 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
                 val result = SecretHorses.spawnMaximule(sender.location)
                 sender.spigot().sendMessage(
                     ColouredTextComponent("Summoned ", ChatColor.DARK_PURPLE) +
-                        result.toTextComponent(colour = ChatColor.BLUE)
+                        result.toTextComponent(colour = ChatColor.BLUE, commandName = command.name)
                 )
                 return
             }
@@ -251,7 +291,7 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
                 val result = SecretHorses.spawnInvincible(sender.location)
                 sender.spigot().sendMessage(
                     ColouredTextComponent("Summoned ", ChatColor.DARK_PURPLE) +
-                        result.toTextComponent(colour = ChatColor.BLUE)
+                        result.toTextComponent(colour = ChatColor.BLUE, commandName = command.name)
                 )
                 return
             }
@@ -286,10 +326,21 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
             setAdult()
         }
         val horseData = Horse {
-            this.uid = horseEntity.uniqueId
+            this.uid = horseEntity.uniqueId.toString()
             this.gender = gender
         }
 
         processHorseModificationArguments(sender, args.subList(1, args.size), horseEntity, horseData)
+        database.addHorse(horseData)
+    }
+
+    override suspend fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: List<String>): List<String>? {
+        val availableArgs = listOf(
+            "help",
+            "stallion", "mare", "gelding", "mule", "jenny", "jack", "dam", "herdsire", "skeleton", "zombie",
+        )
+        if (args.size == 1)
+            return availableArgs.filter { it.startsWith(args[0], ignoreCase = true) }
+        return processHorseModificationTabComplete(sender = sender, command = command, alias = alias, args = args.subList(1), updateMode = false)
     }
 }

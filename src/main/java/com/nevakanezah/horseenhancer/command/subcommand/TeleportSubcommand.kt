@@ -69,7 +69,7 @@ class TeleportSubcommand(main: HorseEnhancerMain) : Subcommand(
 
             val (horse, horseEntity) = horses[0]
             val horseTextComponent = HorseUtil.horseTextComponent(
-                horseData = horse, horseEntity = horseEntity, colour = ChatColor.GREEN
+                horseData = horse, horseEntity = horseEntity, colour = ChatColor.GREEN, commandName = command.name
             )
 
             val message: BaseComponent = if (toEntity) {

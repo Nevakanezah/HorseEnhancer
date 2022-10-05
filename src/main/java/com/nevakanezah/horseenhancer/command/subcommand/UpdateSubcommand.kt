@@ -4,9 +4,11 @@ import com.nevakanezah.horseenhancer.HorseEnhancerMain
 import com.nevakanezah.horseenhancer.command.subcommand.SummonSubcommand.Companion.generateSummonHelpTexts
 import com.nevakanezah.horseenhancer.command.subcommand.SummonSubcommand.Companion.processHorseModificationArguments
 import com.nevakanezah.horseenhancer.database.SQLiteDatabase
+import com.nevakanezah.horseenhancer.database.SQLiteDatabase.Companion.flushChangesSuspend
 import com.nevakanezah.horseenhancer.util.HorseUtil.toTextComponent
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.ColouredTextComponent
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.CommandTextComponent
+import com.nevakanezah.horseenhancer.util.TextComponentUtils.joinCommandArgs
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.plus
 import kotlinx.coroutines.flow.toList
 import net.md_5.bungee.api.ChatColor
@@ -60,8 +62,8 @@ class UpdateSubcommand(main: HorseEnhancerMain) : Subcommand(
                     ColouredTextComponent(query.joinToString(separator = " "), ChatColor.GREEN) + ":"
             )
             horseList.map {
-                it.toTextComponent().apply {
-                    clickEvent = ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/${command.name} ${this@UpdateSubcommand.name} #${it.first.horseId} ${remainingArgs.joinToString(" ")}")
+                it.toTextComponent(commandName = command.name).apply {
+                    clickEvent = ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/${command.name} ${this@UpdateSubcommand.name} #${it.first.horseId} ${remainingArgs.joinCommandArgs()}")
                 }
             }.forEach(sender.spigot()::sendMessage)
             return
@@ -69,5 +71,6 @@ class UpdateSubcommand(main: HorseEnhancerMain) : Subcommand(
 
         val (horseData, horseEntity) = horseList[0]
         processHorseModificationArguments(sender, args, horseEntity, horseData)
+        horseData.flushChangesSuspend()
     }
 }

@@ -34,7 +34,7 @@ object SecretHorses {
         }
 
         horseData.apply {
-            uid = horseEntity.uniqueId
+            uid = horseEntity.uniqueId.toString()
             gender = HorseGender.INBRED
         }
 
@@ -59,7 +59,7 @@ object SecretHorses {
         }
 
         horseData.apply {
-            uid = horseEntity.uniqueId
+            uid = horseEntity.uniqueId.toString()
             gender = HorseGender.UNIQUE
         }
 
@@ -86,7 +86,7 @@ object SecretHorses {
         }
 
         horseData.apply {
-            uid = horseEntity.uniqueId
+            uid = horseEntity.uniqueId.toString()
             gender = HorseGender.UNIQUE
         }
 

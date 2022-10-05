@@ -35,7 +35,7 @@ class InspectSubcommand(main: HorseEnhancerMain) : Subcommand(
             messages.add(ColouredTextComponent("Usage: /${command.name} ${this.name} ${CommandHandler.requiredParameter("horseID|horseCustomName")}", ChatColor.DARK_PURPLE))
         } else {
             database.searchHorses(query = args).onEach { (horse, entity) ->
-                messages.addAll(HorseUtil.detailedHorseComponent(horseData = horse, horseEntity = entity))
+                messages.addAll(HorseUtil.detailedHorseComponent(horseData = horse, horseEntity = entity, commandName = command.name))
             }.onEmpty {
                 messages.add(
                     ColouredTextComponent(ChatColor.RED) + "No horses were found matching [" + ColouredTextComponent(args.joinToString(separator = " "), ChatColor.GREEN) + "]"

@@ -42,12 +42,12 @@ class HorseEnhancerMain : JavaPlugin() {
         val databaseFile = File(this.dataFolder, "database.sqlite3")
         databaseFile.parentFile.mkdirs()
         SQLiteDatabase(databaseFile, this).apply {
-            launch {
+            this@HorseEnhancerMain.launch {
                 migrateTables()
             }
         }
     }
-    val configHandler: ConfigHandler by lazy { ConfigHandler(this) }
+    val configHandler: ConfigHandler = ConfigHandler(this)
 
     override fun onEnable() {
         server.servicesManager.apply {

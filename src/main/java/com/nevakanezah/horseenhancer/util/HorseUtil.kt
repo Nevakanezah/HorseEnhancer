@@ -1,6 +1,5 @@
 package com.nevakanezah.horseenhancer.util
 
-import com.nevakanezah.horseenhancer.HorseEnhancerMain
 import com.nevakanezah.horseenhancer.command.subcommand.InspectSubcommand
 import com.nevakanezah.horseenhancer.database.table.Horse
 import com.nevakanezah.horseenhancer.model.HorseGender
@@ -16,14 +15,10 @@ import org.bukkit.attribute.Attribute
 import org.bukkit.entity.AbstractHorse
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Llama
-import org.bukkit.plugin.java.annotation.command.Command
 import java.text.DecimalFormat
 import kotlin.random.Random
-import kotlin.reflect.full.findAnnotation
 
 object HorseUtil {
-    private val commandName = HorseEnhancerMain::class.findAnnotation<Command>()!!.name
-
     var AbstractHorse.speed
         get() = this.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED)!!.baseValue
         set(value) {
@@ -42,16 +37,16 @@ object HorseUtil {
             this.getAttribute(Attribute.GENERIC_MAX_HEALTH)!!.baseValue = value
         }
 
-    @JvmOverloads
     fun Pair<Horse, AbstractHorse>.toTextComponent(
         extendedInfo: Boolean = false,
         colour: ChatColor = ChatColor.DARK_PURPLE,
-    ): TextComponent = horseTextComponent(horseData = first, horseEntity = second, extendedInfo = extendedInfo, colour = colour)
+        commandName: String,
+    ): TextComponent = horseTextComponent(horseData = first, horseEntity = second, extendedInfo = extendedInfo, colour = colour, commandName = commandName)
 
-    @JvmOverloads
     fun horseTextComponent(
         horseData: Horse,
         horseEntity: AbstractHorse,
+        commandName: String,
         extendedInfo: Boolean = false,
         showAttributes: Boolean = true,
         colour: ChatColor = ChatColor.DARK_PURPLE,
@@ -78,11 +73,11 @@ object HorseUtil {
         return ColouredTextComponent(colour) + horseText
     }
 
-    @JvmOverloads
     fun detailedHorseComponent(
         horseData: Horse,
         horseEntity: AbstractHorse,
         showAttributes: Boolean = true,
+        commandName: String,
     ) = buildList {
         fun textParent(parent: String, value: String?) = TextComponent("$parent: ").apply {
             color = ChatColor.DARK_PURPLE
@@ -98,7 +93,7 @@ object HorseUtil {
         }
         add(
             ColouredTextComponent(ChatColor.DARK_PURPLE) + " ----- " + horseTextComponent(
-                horseData = horseData, horseEntity = horseEntity, colour = ChatColor.BLUE, showAttributes = showAttributes
+                horseData = horseData, horseEntity = horseEntity, colour = ChatColor.BLUE, showAttributes = showAttributes, commandName = commandName
             ) + " ----- "
         )
         add(
@@ -124,7 +119,7 @@ object HorseUtil {
         }
         add(textParent("Sire", horseData.fatherId))
         add(textParent("Dam", horseData.motherId))
-        add(ColouredTextComponent(" ${"-".repeat(6 * 2 + 1 + horseData.horseId.length)} ", ChatColor.DARK_PURPLE))
+        add(ColouredTextComponent(" ${"-".repeat(5 * 2 + 1 + horseData.horseId.length)} ", ChatColor.DARK_PURPLE))
     }
 
     fun generateGender(entityType: EntityType, bias: Double): HorseGender {

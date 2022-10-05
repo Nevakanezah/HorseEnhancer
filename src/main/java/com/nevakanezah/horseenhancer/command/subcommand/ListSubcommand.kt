@@ -25,7 +25,7 @@ class ListSubcommand(main: HorseEnhancerMain) : Subcommand(
     override suspend fun onCommand(sender: CommandSender, command: Command, label: String, args: List<String>) {
         val messages = mutableListOf<BaseComponent>()
 
-        // TODO Purge invalid horses here
+        database.removeInvalidHorses()
         if (!database.hasHorses()) {
             messages.add(ColouredTextComponent("There are no registered horses.", ChatColor.DARK_PURPLE))
         } else {
@@ -34,10 +34,14 @@ class ListSubcommand(main: HorseEnhancerMain) : Subcommand(
             messages.add(ColouredTextComponent(ChatColor.DARK_PURPLE) + "There are currently " + ColouredTextComponent(horsesCount.toString(), ChatColor.YELLOW) + " registered horses.")
             // TODO Pagination
             database.getHorsesEntity()
-                .map { it.toTextComponent(extendedInfo = true) }
+                .map { it.toTextComponent(extendedInfo = true, commandName = command.name) }
                 .collect(messages::add)
         }
 
         messages.forEach(sender.spigot()::sendMessage)
+    }
+
+    override suspend fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: List<String>): List<String> {
+        return emptyList()
     }
 }

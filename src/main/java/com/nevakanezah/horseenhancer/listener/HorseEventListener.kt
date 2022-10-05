@@ -96,7 +96,7 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
                 }
 
                 val showAttributes = config.enableInspectorAttributes || player.hasPermission(permissionInspectionAttributes)
-                HorseUtil.detailedHorseComponent(horseData = horseData, horseEntity = horse, showAttributes = showAttributes).forEach(player.spigot()::sendMessage)
+                HorseUtil.detailedHorseComponent(horseData = horseData, horseEntity = horse, showAttributes = showAttributes, commandName = main.description.commands.keys.first()).forEach(player.spigot()::sendMessage)
             }
             InteractMode.GELD -> {
                 if (horse.owner != player) {
@@ -123,7 +123,7 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
                     }
                 }
 
-                player.sendMessage(ColouredTextComponent("Successfully gelded ${HorseUtil.horseTextComponent(horseData, horse, showAttributes = false)}", ChatColor.DARK_PURPLE) + ".")
+                player.sendMessage(ColouredTextComponent("Successfully gelded ${HorseUtil.horseTextComponent(horseData, horse, showAttributes = false, commandName = main.description.commands.keys.first())}", ChatColor.DARK_PURPLE) + ".")
             }
         }
     }
@@ -154,7 +154,7 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
             return
 
         val horseData = Horse {
-            uid = horse.uniqueId
+            uid = horse.uniqueId.toString()
             gender = generateGender(horse.type)
         }
         database.addHorse(horseData)
@@ -178,14 +178,14 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
         }
 
         val childData = Horse {
-            uid = child.uniqueId
+            uid = child.uniqueId.toString()
             gender = generateGender(child.type)
             if (fatherData.canSire() && !motherData.canSire()) {
-                motherUid = mother.uniqueId
-                fatherUid = father.uniqueId
+                motherUid = mother.uniqueId.toString()
+                fatherUid = father.uniqueId.toString()
             } else {
-                motherUid = father.uniqueId
-                fatherUid = mother.uniqueId
+                motherUid = father.uniqueId.toString()
+                fatherUid = mother.uniqueId.toString()
             }
         }
 
@@ -244,9 +244,9 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
             return result
         }
 
-        child.speed = getAttributesFromParents { speed }.coerceIn(0.1125, 0.3375)
-        child.maxHealthAttribute = getAttributesFromParents { maxHealthAttribute }.coerceIn(15.0, 30.0)
-        child.jumpStrengthAttribute = getAttributesFromParents { jumpStrengthAttribute }.coerceIn(0.4, 1.0)
+        child.speed = getAttributesFromParents { speed }.coerceIn(0.1125..0.3375)
+        child.maxHealthAttribute = getAttributesFromParents { maxHealthAttribute }.coerceIn(15.0..30.0)
+        child.jumpStrengthAttribute = getAttributesFromParents { jumpStrengthAttribute }.coerceIn(0.4..1.0)
 
         if (child is EntityHorse && father is EntityHorse && mother is EntityHorse) {
             val fatherColourIndex = horseColours.indexOf(father.color)

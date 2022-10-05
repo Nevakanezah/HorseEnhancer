@@ -21,6 +21,16 @@ import java.io.File
 import java.util.*
 
 class SQLiteDatabase(private val file: File, private val plugin: Plugin) : AutoCloseable {
+    companion object {
+        //region Utilities
+        suspend fun <E : Entity<E>> Entity<E>.deleteSuspend() =
+            withContext(Dispatchers.IO) { this@deleteSuspend.delete() }
+
+        suspend fun <E : Entity<E>> Entity<E>.flushChangesSuspend() =
+            withContext(Dispatchers.IO) { this@flushChangesSuspend.flushChanges() }
+        //endregion
+    }
+
     private val dataSource = HikariDataSource(HikariConfig().apply {
         jdbcUrl = JDBC.PREFIX + file.path
     })
@@ -38,17 +48,9 @@ class SQLiteDatabase(private val file: File, private val plugin: Plugin) : AutoC
         }
     }
 
-    //region Utilities
-    suspend fun <E : Entity<E>> Entity<E>.deleteSuspend() =
-        withContext(Dispatchers.IO) { this@deleteSuspend.delete() }
-
-    suspend fun <E : Entity<E>> Entity<E>.flushChangesSuspend() =
-        withContext(Dispatchers.IO) { this@flushChangesSuspend.flushChanges() }
-    //endregion
-
     suspend fun getHorse(uid: UUID) = withContext(Dispatchers.IO) {
         database.horses
-            .find { it.uid eq uid }
+            .find { it.uid eq uid.toString() }
     }
 
     suspend fun addHorse(horse: Horse) = withContext(Dispatchers.IO) { database.horses.add(horse) }
@@ -62,7 +64,7 @@ class SQLiteDatabase(private val file: File, private val plugin: Plugin) : AutoC
             .flowOn(Dispatchers.IO)
     fun getHorsesEntity() =
         getHorses()
-            .mapNotNull { horse -> (Bukkit.getEntity(horse.uid) as? AbstractHorse)?.let { horse to it } }
+            .mapNotNull { horse -> (Bukkit.getEntity(UUID.fromString(horse.uid)) as? AbstractHorse)?.let { horse to it } }
             .flowOn(plugin.minecraftDispatcher)
 
     suspend fun countHorses() = withContext(Dispatchers.IO) { database.horses.count() }
@@ -79,7 +81,9 @@ class SQLiteDatabase(private val file: File, private val plugin: Plugin) : AutoC
             .flowOn(plugin.minecraftDispatcher)
 
     fun searchHorses(query: List<String>): Flow<Pair<Horse, AbstractHorse>> {
-        require(query.isNotEmpty()) { "Query list should not be empty" }
+        if (query.isEmpty())
+            return getHorsesEntity()
+
         val searchId: String?
         val searchTerms: List<String>
 
@@ -96,7 +100,7 @@ class SQLiteDatabase(private val file: File, private val plugin: Plugin) : AutoC
     suspend fun removeInvalidHorses() {
         getHorses()
             .filter { horse ->
-                val entity = Bukkit.getEntity(horse.uid)
+                val entity = Bukkit.getEntity(UUID.fromString(horse.uid))
                 entity == null || entity !is AbstractHorse || entity.isDead
             }
             .onEach { it.deleteSuspend() }
