@@ -180,7 +180,7 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
         val childData = Horse {
             uid = child.uniqueId.toString()
             gender = generateGender(child.type)
-            if (fatherData.canSire() && !motherData.canSire()) {
+            if (fatherData.isSire && !motherData.isSire) {
                 motherUid = mother.uniqueId.toString()
                 fatherUid = father.uniqueId.toString()
             } else {

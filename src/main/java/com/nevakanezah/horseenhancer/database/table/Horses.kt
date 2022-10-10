@@ -58,10 +58,11 @@ interface Horse : Entity<Horse> {
         }
     }
 
-    fun canSire(): Boolean = when (gender) {
-        HorseGender.STALLION, HorseGender.JACK, HorseGender.HERDSIRE -> true
-        else -> false
-    }
+    val isSire: Boolean
+        get() = when (gender) {
+            HorseGender.STALLION, HorseGender.JACK, HorseGender.HERDSIRE -> true
+            else -> false
+        }
 
     fun isRelated(partner: Horse): Boolean {
         if (partner.uid == fatherUid || partner.uid == motherUid)
