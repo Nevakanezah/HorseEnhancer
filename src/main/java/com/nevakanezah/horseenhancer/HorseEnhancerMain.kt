@@ -38,22 +38,10 @@ import java.io.File
 @Library("org.xerial:sqlite-jdbc:3.39.3.0")
 //endregion
 class HorseEnhancerMain : JavaPlugin() {
-    private val database: SQLiteDatabase by lazy {
-        val databaseFile = File(this.dataFolder, "database.sqlite3")
-        databaseFile.parentFile.mkdirs()
-        SQLiteDatabase(databaseFile, this).apply {
-            this@HorseEnhancerMain.launch {
-                migrateTables()
-            }
-        }
-    }
+    private lateinit var database: SQLiteDatabase
     val configHandler: ConfigHandler = ConfigHandler(this)
 
     override fun onEnable() {
-        server.servicesManager.apply {
-            register(SQLiteDatabase::class.java, database, this@HorseEnhancerMain, ServicePriority.Normal)
-        }
-
         val commandExecutor = CommandHandler(this)
         description.commands.keys.mapNotNull(this::getCommand)
             .forEach { command ->
@@ -64,9 +52,18 @@ class HorseEnhancerMain : JavaPlugin() {
         server.pluginManager.apply {
             registerSuspendingEvents(HorseEventListener(this@HorseEnhancerMain), this@HorseEnhancerMain)
         }
+
+        val databaseFile = File(this.dataFolder, "database.sqlite3")
+        databaseFile.parentFile.mkdirs()
+        database = SQLiteDatabase(databaseFile, this).apply {
+            launch { migrateTables() }
+        }
+        server.servicesManager.register(SQLiteDatabase::class.java, database, this, ServicePriority.Normal)
     }
 
     override fun onDisable() {
-        database.close()
+        if (this::database.isInitialized) {
+            database.close()
+        }
     }
 }
