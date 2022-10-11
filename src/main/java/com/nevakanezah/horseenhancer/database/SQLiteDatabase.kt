@@ -40,6 +40,12 @@ class SQLiteDatabase(private val file: File, private val plugin: Plugin) : AutoC
         dataSource.close()
     }
 
+    fun vacuumDatabase() {
+        database.useConnection { connection ->
+            connection.prepareStatement("VACUUM;").execute()
+        }
+    }
+
     suspend fun migrateTables() {
         withContext(Dispatchers.IO) {
             Flyway.configure().apply {

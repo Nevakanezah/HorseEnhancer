@@ -29,7 +29,6 @@ class TeleportSubcommand(main: HorseEnhancerMain) : Subcommand(
             toEntity: Boolean,
             sender: CommandSender,
             command: Command,
-            label: String,
             args: List<String>
         ) {
             sender as Player
@@ -88,6 +87,6 @@ class TeleportSubcommand(main: HorseEnhancerMain) : Subcommand(
     }
 
     override suspend fun onCommand(sender: CommandSender, command: Command, label: String, args: List<String>) {
-        handleTeleportCommands(true, sender, command, label, args)
+        handleTeleportCommands(true, sender, command, args)
     }
 }

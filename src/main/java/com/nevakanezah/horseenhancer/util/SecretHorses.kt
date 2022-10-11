@@ -6,10 +6,7 @@ import com.nevakanezah.horseenhancer.util.HorseUtil.jumpStrengthAttribute
 import com.nevakanezah.horseenhancer.util.HorseUtil.maxHealthAttribute
 import com.nevakanezah.horseenhancer.util.HorseUtil.speed
 import net.md_5.bungee.api.ChatColor
-import org.bukkit.Bukkit
-import org.bukkit.FireworkEffect
-import org.bukkit.Location
-import org.bukkit.World
+import org.bukkit.*
 import org.bukkit.entity.AbstractHorse
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Firework
@@ -98,10 +95,19 @@ object SecretHorses {
             fireworkMeta = fireworkMeta.apply {
                 addEffect(FireworkEffect.builder()
                     .with(FireworkEffect.Type.BALL)
+                    .withColor(
+                        ChatColor.DARK_RED.bukkitColor,
+                        ChatColor.GOLD.bukkitColor,
+                        ChatColor.DARK_BLUE.bukkitColor,
+                        ChatColor.DARK_GREEN.bukkitColor,
+                    )
+                    .withFlicker()
                     .build())
                 power = 0
             }
-            detonate()
         }
     }
+
+    private val ChatColor.bukkitColor
+        get() = this.color?.let { color -> Color.fromBGR(color.rgb and 0xff_ff_ff) } ?: Color.WHITE
 }

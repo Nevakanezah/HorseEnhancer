@@ -35,7 +35,7 @@ interface Horse : Entity<Horse> {
         get() = motherUid?.let { NameConverter.uint2quint(UUID.fromString(it).leastSignificantBits.toUInt()) }
 
     suspend fun geld(): Boolean {
-        if (gender != HorseGender.STALLION || gender != HorseGender.JACK || gender != HorseGender.HERDSIRE)
+        if (!isSire)
             return false
 
         gender = HorseGender.GELDING
@@ -69,7 +69,7 @@ interface Horse : Entity<Horse> {
             return true
         if (partner.fatherUid == uid || partner.fatherUid == uid)
             return true
-        if (fatherUid == partner.fatherUid && motherUid == partner.motherUid)
+        if (fatherUid != null && motherUid != null && fatherUid == partner.fatherUid && motherUid == partner.motherUid)
             return true
 
         return false

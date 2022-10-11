@@ -83,7 +83,7 @@ object HorseUtil {
             color = ChatColor.DARK_PURPLE
             addExtra(TextComponent().apply {
                 color = if (value != null) {
-                    addExtra(value)
+                    addExtra("#$value")
                     ChatColor.GREEN
                 } else {
                     addExtra("---")
@@ -127,7 +127,7 @@ object HorseUtil {
 
         return when (entityType) {
             EntityType.HORSE -> if (rand < bias) HorseGender.STALLION else HorseGender.MARE
-            EntityType.LLAMA -> if (rand < bias) HorseGender.HERDSIRE else HorseGender.DAM
+            EntityType.LLAMA, EntityType.TRADER_LLAMA -> if (rand < bias) HorseGender.HERDSIRE else HorseGender.DAM
             EntityType.DONKEY -> if (rand < bias) HorseGender.JACK else HorseGender.JENNY
             EntityType.MULE -> HorseGender.MULE
             EntityType.SKELETON_HORSE -> HorseGender.UNDEAD

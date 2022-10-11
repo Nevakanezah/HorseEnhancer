@@ -42,6 +42,16 @@ class HorseEnhancerMain : JavaPlugin() {
     val configHandler: ConfigHandler = ConfigHandler(this)
 
     override fun onEnable() {
+        val databaseFile = File(this.dataFolder, "database.sqlite3")
+        databaseFile.parentFile.mkdirs()
+        database = SQLiteDatabase(databaseFile, this).apply {
+            launch {
+                migrateTables()
+                vacuumDatabase()
+            }
+        }
+        server.servicesManager.register(SQLiteDatabase::class.java, database, this, ServicePriority.Normal)
+
         val commandExecutor = CommandHandler(this)
         description.commands.keys.mapNotNull(this::getCommand)
             .forEach { command ->
@@ -52,13 +62,6 @@ class HorseEnhancerMain : JavaPlugin() {
         server.pluginManager.apply {
             registerSuspendingEvents(HorseEventListener(this@HorseEnhancerMain), this@HorseEnhancerMain)
         }
-
-        val databaseFile = File(this.dataFolder, "database.sqlite3")
-        databaseFile.parentFile.mkdirs()
-        database = SQLiteDatabase(databaseFile, this).apply {
-            launch { migrateTables() }
-        }
-        server.servicesManager.register(SQLiteDatabase::class.java, database, this, ServicePriority.Normal)
     }
 
     override fun onDisable() {

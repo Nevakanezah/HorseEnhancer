@@ -6,6 +6,7 @@ import com.nevakanezah.horseenhancer.database.SQLiteDatabase
 import com.nevakanezah.horseenhancer.database.table.Horse
 import com.nevakanezah.horseenhancer.model.HorseGender
 import com.nevakanezah.horseenhancer.util.HorseUtil.generateGender
+import com.nevakanezah.horseenhancer.util.HorseUtil.horseTextComponent
 import com.nevakanezah.horseenhancer.util.HorseUtil.maxHealthAttribute
 import com.nevakanezah.horseenhancer.util.HorseUtil.speed
 import com.nevakanezah.horseenhancer.util.HorseUtil.toTextComponent
@@ -13,11 +14,13 @@ import com.nevakanezah.horseenhancer.util.SecretHorses
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.ColouredTextComponent
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.CommandTextComponent
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.plus
+import com.nevakanezah.horseenhancer.util.TextComponentUtils.sendMessage
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.shortestAlias
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.subList
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.toList
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.chat.BaseComponent
+import net.md_5.bungee.api.chat.ClickEvent
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
@@ -37,7 +40,7 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
     private val database: SQLiteDatabase = Bukkit.getServicesManager().load(SQLiteDatabase::class.java)!!
 
     companion object {
-        private val horseGenders = sequenceOf("stallion", "mare", "gelding", "mule", "jenny", "jack", "dam", "herdsire", "skeleton", "zombie",)
+        private val horseGenders = sequenceOf("stallion", "mare", "gelding", "mule", "jenny", "jack", "dam", "herdsire", "skeleton", "zombie")
         private data class Argument(
             val flag: String,
             val name: String,
@@ -48,7 +51,7 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
         )
         private val arguments = listOf(
             //"g", "s", "j", "h", "o", "f", "m", "l"
-            Argument("g", "gender", "Change the horse's gender.", updateMode = true) { input -> horseGenders.filter { it.startsWith(input, ignoreCase = true) }.toList() },
+            Argument("g", "gender", "Change the horse's gender.", updateMode = true) { input -> listOf("male", "female").filter { it.startsWith(input, ignoreCase = true) }.toList() },
             Argument("s", "speed", "Decimal value for horse speed.", "[0.1125 - 0.3375]"),
             Argument("j", "jump", "Decimal value for horse jump strength.", "[0.4 - 1.0]"),
             Argument("h", "health", "Decimal value for horse max HP.", "[15.0 - 30.0]"),
@@ -90,7 +93,7 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
             return messages
         }
 
-        suspend fun processHorseModificationArguments(sender: CommandSender, args: List<String>, horseEntity: AbstractHorse, horseData: Horse) {
+        suspend fun processHorseModificationArguments(sender: CommandSender, args: List<String>, horseEntity: AbstractHorse, horseData: Horse, commandName: String) {
             if (args.isEmpty())
                 return
 
@@ -114,10 +117,10 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
                         return@zipWithNext
                     }
 
-                    suspend fun getHorse(): Pair<Horse, AbstractHorse>? {
-                        val result = database.searchHorses(listOf(value)).firstOrNull()
-                        if (result == null) {
-                            sender.spigot().sendMessage(
+                    suspend fun getHorse(): List<Pair<Horse, AbstractHorse>>? {
+                        val result = database.searchHorses(listOf(value)).toList()
+                        if (result.isEmpty()) {
+                            sender.sendMessage(
                                 ColouredTextComponent("Could not find the specified horse: ", ChatColor.RED) +
                                     ColouredTextComponent(value, ChatColor.DARK_PURPLE)
                             )
@@ -194,11 +197,32 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
 
                         "f" -> {
                             // fixme Needs to handle multiple results
-                            horseData.fatherUid = getHorse()?.second?.uniqueId?.toString() ?: return@zipWithNext
+                            val parents = getHorse() ?: return@zipWithNext
+                            if (parents.size > 1) {
+                                sender.sendMessage(ColouredTextComponent("There are more than 1 horse found for the father:", ChatColor.DARK_PURPLE))
+                                for ((parentData, parentEntity) in parents) {
+                                    sender.sendMessage(horseTextComponent(parentData, parentEntity, commandName = commandName, colour = ChatColor.BLUE).apply {
+                                        clickEvent = ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/$commandName ${UpdateSubcommand.subcommandName} #${horseData.horseId} -f #${parentData.horseId}")
+                                    })
+                                }
+                                sender.sendMessage(ColouredTextComponent(ChatColor.DARK_PURPLE))
+                                return@zipWithNext
+                            }
+                            horseData.fatherUid = parents.first().second.uniqueId.toString()
                         }
 
                         "m" -> {
-                            horseData.motherUid = getHorse()?.second?.uniqueId?.toString() ?: return@zipWithNext
+                            val parents = getHorse() ?: return@zipWithNext
+                            if (parents.size > 1) {
+                                sender.sendMessage(ColouredTextComponent("There are more than 1 horse found for the mother:", ChatColor.DARK_PURPLE))
+                                for ((parentData, parentEntity) in parents) {
+                                    sender.sendMessage(horseTextComponent(parentData, parentEntity, commandName = commandName, colour = ChatColor.BLUE).apply {
+                                        clickEvent = ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/$commandName ${UpdateSubcommand.subcommandName} #${horseData.horseId} -m #${parentData.horseId}")
+                                    })
+                                }
+                                return@zipWithNext
+                            }
+                            horseData.motherUid = parents.first().second.uniqueId.toString()
                         }
 
                         "l" -> {
@@ -226,6 +250,7 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
             }
         }
 
+        @Suppress("UNUSED_PARAMETER")
         fun processHorseModificationTabComplete(sender: CommandSender, command: Command, alias: String, args: List<String>, updateMode: Boolean): List<String> {
             val argsFlags = arguments.asSequence()
                 .filter { updateMode || !it.updateMode }
@@ -285,6 +310,7 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
                     ColouredTextComponent("Summoned ", ChatColor.DARK_PURPLE) +
                         result.toTextComponent(colour = ChatColor.BLUE, commandName = command.name)
                 )
+                database.addHorse(result.first)
                 return
             }
             "invincible" -> {
@@ -293,6 +319,7 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
                     ColouredTextComponent("Summoned ", ChatColor.DARK_PURPLE) +
                         result.toTextComponent(colour = ChatColor.BLUE, commandName = command.name)
                 )
+                database.addHorse(result.first)
                 return
             }
             else -> {
@@ -322,7 +349,6 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
 
         val world = sender.location.world ?: sender.world
         val horseEntity = (world.spawnEntity(sender.location, entityType) as AbstractHorse).apply {
-            isTamed = true
             setAdult()
         }
         val horseData = Horse {
@@ -330,7 +356,7 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
             this.gender = gender
         }
 
-        processHorseModificationArguments(sender, args.subList(1, args.size), horseEntity, horseData)
+        processHorseModificationArguments(sender, args.subList(1, args.size), horseEntity, horseData, commandName = command.name)
         database.addHorse(horseData)
     }
 

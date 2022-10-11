@@ -4,21 +4,20 @@ import com.nevakanezah.horseenhancer.HorseEnhancerMain
 import com.nevakanezah.horseenhancer.config.Config
 import com.nevakanezah.horseenhancer.database.SQLiteDatabase
 import com.nevakanezah.horseenhancer.database.table.Horse
+import com.nevakanezah.horseenhancer.model.HorseGender
 import com.nevakanezah.horseenhancer.util.HorseUtil
+import com.nevakanezah.horseenhancer.util.HorseUtil.horseTextComponent
 import com.nevakanezah.horseenhancer.util.HorseUtil.jumpStrengthAttribute
 import com.nevakanezah.horseenhancer.util.HorseUtil.maxHealthAttribute
 import com.nevakanezah.horseenhancer.util.HorseUtil.speed
+import com.nevakanezah.horseenhancer.util.LocationUtil.bodyLocation
 import com.nevakanezah.horseenhancer.util.SecretHorses
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.ColouredTextComponent
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.plus
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.sendMessage
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
 import net.md_5.bungee.api.ChatColor
-import org.bukkit.Bukkit
-import org.bukkit.Material
-import org.bukkit.Sound
+import org.bukkit.*
 import org.bukkit.entity.*
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -104,6 +103,10 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
                     return
                 }
 
+                if (horseData.gender == HorseGender.GELDING) {
+                    player.sendMessage(ColouredTextComponent("Target is already gelded.", ChatColor.RED))
+                    return
+                }
                 if (!horseData.geld()) {
                     player.sendMessage(ColouredTextComponent("Target is not male.", ChatColor.RED))
                     return
@@ -112,18 +115,21 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
                 horse.world.apply {
                     playSound(horse, Sound.ENTITY_SHEEP_SHEAR, 1f, 1f)
                     playSound(horse, Sound.ENTITY_HORSE_DEATH, 0.3f, 1.3f)
-                    playSound(horse, Sound.ENTITY_SHEEP_SHEAR, 1f, 1f)
+                    // playSound(horse, Sound.ENTITY_SHEEP_SHEAR, 1f, 1f)
                 }
-                item.itemMeta?.also { itemMeta ->
-                    // Setting item's itemMeta
-                    item.itemMeta = itemMeta.apply {
-                        if (item.type.maxDurability <= 0 || itemMeta !is Damageable || itemMeta.isUnbreakable)
-                            return@also // Ignore setting itemMeta
-                        itemMeta.damage += 1
+                if (player.gameMode != GameMode.CREATIVE) {
+                    item.itemMeta?.also { itemMeta ->
+                        // Setting item's itemMeta
+                        item.itemMeta = itemMeta.apply {
+                            if (item.type.maxDurability <= 0 || itemMeta !is Damageable || itemMeta.isUnbreakable)
+                                return@also // Ignore setting itemMeta
+                            itemMeta.damage += 1
+                        }
                     }
                 }
 
-                player.sendMessage(ColouredTextComponent("Successfully gelded ${HorseUtil.horseTextComponent(horseData, horse, showAttributes = false, commandName = main.description.commands.keys.first())}", ChatColor.DARK_PURPLE) + ".")
+                player.sendMessage(ColouredTextComponent("Successfully gelded ", ChatColor.DARK_PURPLE) +
+                    horseTextComponent(horseData, horse, showAttributes = false, commandName = main.description.commands.keys.first(), colour = ChatColor.BLUE) + ".")
             }
         }
     }
@@ -153,6 +159,8 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
         if (horse !is AbstractHorse || player !is Player)
             return
 
+        if (database.getHorse(horse.uniqueId) == null)
+            return
         val horseData = Horse {
             uid = horse.uniqueId.toString()
             gender = generateGender(horse.type)
@@ -161,7 +169,7 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
-    suspend fun onHorseBreed(event: EntityBreedEvent) = coroutineScope {
+    suspend fun onHorseBreed(event: EntityBreedEvent) {
         val config = main.configHandler.data
         val player = event.breeder
         val mother = event.mother
@@ -169,12 +177,19 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
         val child = event.entity
 
         if (player !is Player || child !is AbstractHorse || mother !is AbstractHorse || father !is AbstractHorse)
-            return@coroutineScope
+            return
 
-        val (motherData, fatherData) = awaitAll(async { database.getHorse(mother.uniqueId) }, async { database.getHorse(father.uniqueId) })
+        val (motherData, fatherData) = runBlocking {
+            database.getHorse(mother.uniqueId) to database.getHorse(father.uniqueId)
+        }
         if (motherData == null || fatherData == null || !motherData.genderCompatible(fatherData)) {
+            father.world.apply {
+                val offset = 0.1
+                spawnParticle(Particle.SMOKE_NORMAL, father.bodyLocation, 0, Random.nextDouble(-offset, offset), 0.1, Random.nextDouble(-offset, offset))
+                spawnParticle(Particle.SMOKE_NORMAL, mother.bodyLocation, 0, Random.nextDouble(-offset, offset), 0.1, Random.nextDouble(-offset, offset))
+            }
             event.isCancelled = true
-            return@coroutineScope
+            return
         }
 
         val childData = Horse {
@@ -193,7 +208,7 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
             SecretHorses.spawnInbred(child.location, childData)
             child.remove()
             database.addHorse(childData)
-            return@coroutineScope
+            return
         }
 
         if (config.enableSecretHorses) {
@@ -217,7 +232,7 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
                 SecretHorses.spawnMaximule(child.location, childData)
                 child.remove()
                 database.addHorse(childData)
-                return@coroutineScope
+                return
             }
 
             if (father is EntityHorse &&
@@ -230,7 +245,7 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
                 SecretHorses.spawnInvincible(child.location, childData)
                 child.remove()
                 database.addHorse(childData)
-                return@coroutineScope
+                return
             }
         }
 
@@ -260,5 +275,42 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
         }
 
         database.addHorse(childData)
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    fun testingResetHorse(event: PlayerInteractEntityEvent) {
+        val horse = event.rightClicked
+        if (horse !is AbstractHorse)
+            return
+        val player = event.player
+        val item = player.inventory.getItem(event.hand)
+        if (item?.type != Material.STICK)
+            return
+        if (!player.isSneaking)
+            return
+        @Suppress("DEPRECATION")
+        horse.setBreed(true)
+        player.apply {
+            sendMessage("Tamed: ${horse.isTamed}")
+            sendMessage("Owner: ${horse.owner}")
+        }
+        player.playSound(horse, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.7f, 1f)
+        event.isCancelled = true
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    fun testingTameHorse(event: PlayerInteractEntityEvent) {
+        val horse = event.rightClicked
+        if (horse !is AbstractHorse)
+            return
+        val player = event.player
+        val item = player.inventory.getItem(event.hand)
+        if (item?.type != Material.REDSTONE_TORCH)
+            return
+        if (!player.isSneaking)
+            return
+        player.playSound(horse, Sound.ENTITY_HORSE_EAT, 0.5f, 0.7f)
+        horse.domestication = horse.maxDomestication - 1
+        event.isCancelled = true
     }
 }

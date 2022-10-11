@@ -10,6 +10,8 @@ import com.nevakanezah.horseenhancer.util.TextComponentUtils.ColouredTextCompone
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.CommandTextComponent
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.joinCommandArgs
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.plus
+import com.nevakanezah.horseenhancer.util.TextComponentUtils.shortestAlias
+import com.nevakanezah.horseenhancer.util.TextComponentUtils.subList
 import kotlinx.coroutines.flow.toList
 import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.chat.ClickEvent
@@ -19,7 +21,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 class UpdateSubcommand(main: HorseEnhancerMain) : Subcommand(
-    name = "update",
+    name = subcommandName,
     description = "Modify an existing horse's attributes. Use '/he summon help' for more info.",
     aliases = arrayOf("u"),
     playersOnly = true,
@@ -28,13 +30,17 @@ class UpdateSubcommand(main: HorseEnhancerMain) : Subcommand(
 ) {
     private val database: SQLiteDatabase = Bukkit.getServicesManager().load(SQLiteDatabase::class.java)!!
 
+    companion object {
+        const val subcommandName = "update"
+    }
+
     override suspend fun onCommand(sender: CommandSender, command: Command, label: String, args: List<String>) {
         sender as Player
 
         if (args.isEmpty()) {
             sender.spigot().sendMessage(
                 ColouredTextComponent("Horse name required! ", ChatColor.RED) +
-                    "Use " + CommandTextComponent("/${command.name} ${this.name} help", true, colour = ChatColor.DARK_PURPLE) +
+                    "Use " + CommandTextComponent("/${command.shortestAlias} ${this.name} help", true, colour = ChatColor.DARK_PURPLE, command = "/${command.name} ${this.name} help") +
                     " help for more information."
             )
             return
@@ -70,7 +76,19 @@ class UpdateSubcommand(main: HorseEnhancerMain) : Subcommand(
         }
 
         val (horseData, horseEntity) = horseList[0]
-        processHorseModificationArguments(sender, args, horseEntity, horseData)
+        processHorseModificationArguments(sender, args.subList(1), horseEntity, horseData, commandName = command.name)
         horseData.flushChangesSuspend()
+    }
+
+    override suspend fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: List<String>): List<String> {
+        val availableArgs = listOf(
+            "help",
+//            "stallion", "mare", "gelding", "mule", "jenny", "jack", "dam", "herdsire", "skeleton", "zombie",
+        )
+        if (args.size == 1)
+            return availableArgs.filter { it.startsWith(args[0], ignoreCase = true) }
+        if (args[0].lowercase() == "help")
+            return emptyList()
+        return SummonSubcommand.processHorseModificationTabComplete(sender = sender, command = command, alias = alias, args = args.subList(1), updateMode = false)
     }
 }
