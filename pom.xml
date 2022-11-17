@@ -132,7 +132,7 @@
             <plugin>
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
-                <version>9.3.0</version>
+                <version>9.8.1</version>
                 <configuration>
                     <url>jdbc:sqlite:database.sqlite3</url>
                 </configuration>
@@ -207,7 +207,7 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>9.3.0</version>
+            <version>9.8.1</version>
         </dependency>
 
         <!-- Kotlin -->
@@ -226,14 +226,14 @@
         <dependency>
             <groupId>com.github.shynixn.mccoroutine</groupId>
             <artifactId>mccoroutine-bukkit-api</artifactId>
-            <version>2.5.0</version>
+            <version>2.6.0</version>
             <scope>compile</scope>
             <!-- Provided through Bukkit plugin library option -->
         </dependency>
         <dependency>
             <groupId>com.github.shynixn.mccoroutine</groupId>
             <artifactId>mccoroutine-bukkit-core</artifactId>
-            <version>2.5.0</version>
+            <version>2.6.0</version>
             <scope>compile</scope>
             <!-- Provided through Bukkit plugin library option -->
         </dependency>
