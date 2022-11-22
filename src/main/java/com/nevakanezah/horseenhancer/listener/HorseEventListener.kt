@@ -96,7 +96,7 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
 
         database.removeInvalidHorses()
         val horseData = database.getHorse(horse.uniqueId)
-        if (horseData == null) {
+        if (horseData == null || (!horse.isTamed && !player.hasPermission(permissionInspectionWild))) {
             player.sendMessage(ColouredTextComponent("You cannot ${mode.verb} a wild horse.", ChatColor.RED))
             return
         }
