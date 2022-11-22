@@ -60,14 +60,28 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
         GELD("geld"),
     }
 
+    // Handler to add tamed horses to database earlier than normal handler
+    @EventHandler(priority = EventPriority.LOW)
+    fun onPlayerInteractHorseEarly(event: PlayerInteractEntityEvent) {
+        val horse = event.rightClicked as? AbstractHorse ?: return
+        if (!horse.isTamed)
+            return
+        runBlocking {
+            if (database.getHorse(horse.uniqueId) == null) {
+                database.addHorse(Horse {
+                    uid = horse.uniqueId.toString()
+                    gender = generateGender(horse.type)
+                })
+            }
+        }
+    }
+
     @EventHandler(ignoreCancelled = true)
     suspend fun onPlayerInteractHorse(event: PlayerInteractEntityEvent) {
         val config = main.configHandler.data
         if (config.enableInspector == Config.InspectorMode.FALSE)
             return
-        val horse = event.rightClicked
-        if (horse !is AbstractHorse)
-            return
+        val horse = event.rightClicked as? AbstractHorse ?: return
         val player = event.player
         val item = player.inventory.getItem(event.hand)
         if (item == null || !player.isSneaking)
@@ -89,13 +103,18 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
 
         when (mode) {
             InteractMode.INSPECT -> {
-                if (config.enableInspector == Config.InspectorMode.RESTRICT && horse.owner != player && !player.hasPermission(permissionInspectionOthers)) {
+                if (config.enableInspector == Config.InspectorMode.RESTRICT && horse.owner?.uniqueId != player.uniqueId && !player.hasPermission(permissionInspectionOthers)) {
                     player.sendMessage(ColouredTextComponent("That does not belong to you.", ChatColor.RED))
                     return
                 }
 
                 val showAttributes = config.enableInspectorAttributes || player.hasPermission(permissionInspectionAttributes)
-                HorseUtil.detailedHorseComponent(horseData = horseData, horseEntity = horse, showAttributes = showAttributes, commandName = main.description.commands.keys.first()).forEach(player.spigot()::sendMessage)
+                HorseUtil.detailedHorseComponent(
+                    horseData = horseData,
+                    horseEntity = horse,
+                    showAttributes = showAttributes,
+                    commandName = main.description.commands.keys.first()
+                ).forEach(player.spigot()::sendMessage)
             }
             InteractMode.GELD -> {
                 if (horse.owner != player) {
@@ -115,7 +134,6 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
                 horse.world.apply {
                     playSound(horse, Sound.ENTITY_SHEEP_SHEAR, 1f, 1f)
                     playSound(horse, Sound.ENTITY_HORSE_DEATH, 0.3f, 1.3f)
-                    // playSound(horse, Sound.ENTITY_SHEEP_SHEAR, 1f, 1f)
                 }
                 if (player.gameMode != GameMode.CREATIVE) {
                     item.itemMeta?.also { itemMeta ->
@@ -158,11 +176,10 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
 
         if (database.getHorse(horse.uniqueId) != null)
             return
-        val horseData = Horse {
+        database.addHorse(Horse {
             uid = horse.uniqueId.toString()
             gender = generateGender(horse.type)
-        }
-        database.addHorse(horseData)
+        })
     }
 
     @EventHandler(ignoreCancelled = true)
