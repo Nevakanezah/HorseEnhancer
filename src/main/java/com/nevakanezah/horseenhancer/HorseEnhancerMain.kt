@@ -19,7 +19,7 @@ import org.bukkit.plugin.java.annotation.plugin.Website
 import org.bukkit.plugin.java.annotation.plugin.author.Author
 import java.io.File
 
-//region @ Plugin Descriptor
+//region @ Plugin Descriptor (outdated, library does not work!)
 @Plugin(name = "HorseEnhancer", version = "2.0.0")
 @Description("All-natural horse enhancement for Minecraft")
 @Author("Nevakanezah")
