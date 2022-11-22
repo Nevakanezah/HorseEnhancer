@@ -152,14 +152,11 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
 
     private fun generateGender(entityType: EntityType, bias: Double = main.configHandler.data.breeding.genderRatio) = HorseUtil.generateGender(entityType = entityType, bias = bias)
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     suspend fun onHorseTame(event: EntityTameEvent) {
-        val horse = event.entity
-        val player = event.owner
-        if (horse !is AbstractHorse || player !is Player)
-            return
+        val horse = event.entity as? AbstractHorse ?: return
 
-        if (database.getHorse(horse.uniqueId) == null)
+        if (database.getHorse(horse.uniqueId) != null)
             return
         val horseData = Horse {
             uid = horse.uniqueId.toString()
@@ -171,13 +168,9 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
     @EventHandler(ignoreCancelled = true)
     suspend fun onHorseBreed(event: EntityBreedEvent) {
         val config = main.configHandler.data
-        val player = event.breeder
-        val mother = event.mother
-        val father = event.father
-        val child = event.entity
-
-        if (player !is Player || child !is AbstractHorse || mother !is AbstractHorse || father !is AbstractHorse)
-            return
+        val mother = event.mother as? AbstractHorse ?: return
+        val father = event.father as? AbstractHorse ?: return
+        val child = event.entity as? AbstractHorse ?: return
 
         val (motherData, fatherData) = runBlocking {
             database.getHorse(mother.uniqueId) to database.getHorse(father.uniqueId)
@@ -185,8 +178,9 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
         if (motherData == null || fatherData == null || !motherData.genderCompatible(fatherData)) {
             father.world.apply {
                 val offset = 0.1
-                spawnParticle(Particle.SMOKE_NORMAL, father.bodyLocation, 0, Random.nextDouble(-offset, offset), 0.1, Random.nextDouble(-offset, offset))
-                spawnParticle(Particle.SMOKE_NORMAL, mother.bodyLocation, 0, Random.nextDouble(-offset, offset), 0.1, Random.nextDouble(-offset, offset))
+                repeat(2) {
+                    spawnParticle(Particle.SMOKE_NORMAL, father.bodyLocation, 0, Random.nextDouble(-offset, offset), 0.1, Random.nextDouble(-offset, offset))
+                }
             }
             event.isCancelled = true
             return
