@@ -161,6 +161,7 @@
             <groupId>com.github.doyaaaaaken</groupId>
             <artifactId>kotlin-csv-jvm</artifactId>
             <version>1.6.0</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- YAML Parser / Writer -->
@@ -168,6 +169,7 @@
             <groupId>space.arim.dazzleconf</groupId>
             <artifactId>dazzleconf-ext-snakeyaml</artifactId>
             <version>1.3.0-M1</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Database -->
@@ -187,16 +189,19 @@
             <groupId>org.ktorm</groupId>
             <artifactId>ktorm-core</artifactId>
             <version>3.5.0</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.ktorm</groupId>
             <artifactId>ktorm-support-sqlite</artifactId>
             <version>3.5.0</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
             <version>9.8.2</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Kotlin -->

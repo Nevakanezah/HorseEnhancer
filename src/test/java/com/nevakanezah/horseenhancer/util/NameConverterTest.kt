@@ -1,6 +1,6 @@
 package com.nevakanezah.horseenhancer.util
 
-import org.junit.Test
+import kotlin.test.Test
 import kotlin.test.assertEquals
 
 internal class NameConverterTest {
