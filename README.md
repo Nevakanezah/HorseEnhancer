@@ -22,11 +22,9 @@ For bug reports and feature suggestions, please [submit an issue via GitHub.](ht
 
 # Future Releases
 The following features are planned for addition in later updates to the plugin:
-* Permissions support.
 * Horse tamer can control who may ride their horse, or transfer ownership.
 * Option to refund the breeding item when incompatible horses attempt to breed.
 * Different horse breeds have different attribute trends.
-* Support for additional Minecraft versions.
 
 # Special Thanks
 Special thanks to the following plugin authors, whose work was an invaluable resource:
