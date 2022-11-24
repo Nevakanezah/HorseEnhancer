@@ -15,7 +15,38 @@ Improvements include:
 * Disables shooting your own mount in the back of the head.
 
 # How to install
-Download the latest HorseEnhancer jar file, and copy it into your `plugins` folder.
+Download the [latest](https://github.com/Nevakanezah/HorseEnhancer/releases/latest) `HorseEnhancer.jar` file, and copy it into your server's `plugins` folder.
+
+# Commands
+
+|         Command         | Description                                          | Permission                      |
+|:-----------------------:|------------------------------------------------------|---------------------------------|
+|       `/he help`        | Shows the list of subcommands and their description. | ---                             |
+|  `/he summon [gender]`  | Summon horse with specified gender and attributes.   | `horseenhancer.command.summon`  |
+| `/he update [horseID]`  | Modify an existing horse's attributes.               | `horseenhancer.command.update`  |
+| `/he inspect [horseID]` | Show inspection details for the specified horse.     | `horseenhancer.command.inspect` |
+|       `/he list`        | List all registered horse IDs.                       | `horseenhancer.command.list`    |
+|      `/he reload`       | Reload plugin configuration.                         | `horseenhancer.command.reload`  |
+|        `/he tp`         | Teleport yourself to the specified horse.            | `horseenhancer.command.tp`      |
+|      `/he tphere`       | Teleport the specified horse to you.                 | `horseenhancer.command.tphere`  |
+
+# Permissions
+The following table includes all the permissions used within the plugin:
+
+|              Permission               | Description                                                                                       |
+|:-------------------------------------:|---------------------------------------------------------------------------------------------------|
+|    `horseenhancer.command.summon`     | Ability to use `summon` subcommand.                                                               |
+|    `horseenhancer.command.update`     | Ability to use `update` subcommand.                                                               |
+|    `horseenhancer.command.inspect`    | Ability to use `inspect` subcommand.                                                              |
+|     `horseenhancer.command.list`      | Ability to use `list` subcommand.                                                                 |
+|    `horseenhancer.command.reload`     | Ability to use `reload` subcommand.                                                               |
+|      `horseenhancer.command.tp`       | Ability to use `teleport` subcommand.                                                             |
+|    `horseenhancer.command.tphere`     | Ability to use `teleporthere` subcommand.                                                         |
+|    `horseenhancer.inspection.wild`    | Informs the player if the horse has a gender but is not tamed.                                    |
+|   `horseenhancer.inspection.others`   | Allows player to inspect horses that does not belong to them.                                     |
+| `horseenhancer.inspection.attributes` | Shows additional detailed stats for the horse during inspection.                                  |
+|     `horseenhancer.testing.reset`     | Used by admins, allows access to reset the horse's owner and tamed state to wild.                 |
+|    `horseenhancer.testing.taming`     | Used by admins, allows access to make horses easier to tame by setting taming meter to `max - 1`. |
 
 # Issues
 For bug reports and feature suggestions, please [submit an issue via GitHub.](https://github.com/Nevakanezah/HorseEnhancer/issues)
