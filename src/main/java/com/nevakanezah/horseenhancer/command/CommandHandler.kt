@@ -43,7 +43,7 @@ class CommandHandler(private val main: HorseEnhancerMain) : SuspendingCommandExe
             addExtra(" for a list of commands.")
         }
 
-        fun showUsage() {
+        if (args.isEmpty()) {
             val textHeader = TextComponent().apply {
                 addExtra(TextComponent().apply {
                     color = ChatColor.DARK_PURPLE
@@ -87,9 +87,6 @@ class CommandHandler(private val main: HorseEnhancerMain) : SuspendingCommandExe
                 textAlias,
                 textHelp,
             ).forEach(sender.spigot()::sendMessage)
-        }
-        if (args.isEmpty()) {
-            showUsage()
             return true
         }
 
