@@ -40,6 +40,8 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
     private val permissionInspectionWild = "${main.description.name.lowercase()}.inspection.wild"
     private val permissionInspectionOthers = "${main.description.name.lowercase()}.inspection.others"
     private val permissionInspectionAttributes = "${main.description.name.lowercase()}.inspection.attributes"
+    private val permissionTestingResetHorse = "${main.description.name.lowercase()}.testing.reset"
+    private val permissionTestingTamingHorse = "${main.description.name.lowercase()}.testing.taming"
 
     private val horseColours: List<EntityHorse.Color> = EntityHorse.Color.values().toMutableList().apply {
         val indexBlack = EntityHorse.Color.BLACK.ordinal
@@ -299,6 +301,8 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
         if (horse !is AbstractHorse)
             return
         val player = event.player
+        if (!player.hasPermission(permissionTestingResetHorse))
+            return
         val item = player.inventory.getItem(event.hand)
         if (item?.type != Material.STICK)
             return
@@ -320,6 +324,8 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
         if (horse !is AbstractHorse)
             return
         val player = event.player
+        if (!player.hasPermission(permissionTestingTamingHorse))
+            return
         val item = player.inventory.getItem(event.hand)
         if (item?.type != Material.REDSTONE_TORCH)
             return
