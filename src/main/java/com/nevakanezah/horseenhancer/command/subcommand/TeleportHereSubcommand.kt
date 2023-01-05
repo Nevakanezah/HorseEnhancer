@@ -15,6 +15,6 @@ class TeleportHereSubcommand(main: HorseEnhancerMain) : Subcommand(
     main = main
 ) {
     override suspend fun onCommand(sender: CommandSender, command: Command, label: String, args: List<String>) {
-        handleTeleportCommands(false, sender, command, args)
+        handleTeleportCommands(false, sender, command, args, main.audience)
     }
 }

@@ -3,16 +3,19 @@ package com.nevakanezah.horseenhancer.util
 import com.nevakanezah.horseenhancer.command.subcommand.InspectSubcommand
 import com.nevakanezah.horseenhancer.database.table.Horse
 import com.nevakanezah.horseenhancer.model.HorseGender
-import com.nevakanezah.horseenhancer.util.TextComponentUtils.ColouredTextComponent
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.plus
-import net.md_5.bungee.api.ChatColor
-import net.md_5.bungee.api.chat.ClickEvent
-import net.md_5.bungee.api.chat.HoverEvent
-import net.md_5.bungee.api.chat.TextComponent
-import net.md_5.bungee.api.chat.hover.content.Entity
-import net.md_5.bungee.api.chat.hover.content.Text
+import net.kyori.adventure.key.Key
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.TextComponent
+import net.kyori.adventure.text.event.ClickEvent
+import net.kyori.adventure.text.event.HoverEvent
+import net.kyori.adventure.text.event.HoverEvent.ShowEntity
+import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.TextColor
+import org.bukkit.NamespacedKey
 import org.bukkit.attribute.Attribute
 import org.bukkit.entity.AbstractHorse
+import org.bukkit.entity.Entity
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Llama
 import java.text.DecimalFormat
@@ -39,7 +42,7 @@ object HorseUtil {
 
     fun Pair<Horse, AbstractHorse>.toTextComponent(
         extendedInfo: Boolean = false,
-        colour: ChatColor = ChatColor.DARK_PURPLE,
+        colour: TextColor = NamedTextColor.DARK_PURPLE,
         commandName: String,
     ): TextComponent = horseTextComponent(horseData = first, horseEntity = second, extendedInfo = extendedInfo, colour = colour, commandName = commandName)
 
@@ -49,28 +52,27 @@ object HorseUtil {
         commandName: String,
         extendedInfo: Boolean = false,
         showAttributes: Boolean = true,
-        colour: ChatColor = ChatColor.DARK_PURPLE,
+        colour: TextColor = NamedTextColor.DARK_PURPLE,
     ): TextComponent {
-        val horseText = TextComponent("#" + horseData.horseId).apply {
-            if (showAttributes) {
-                hoverEvent = HoverEvent(HoverEvent.Action.SHOW_TEXT, Text(arrayOf(
-                    ColouredTextComponent(ChatColor.DARK_PURPLE) +
-                        "Spe:" + ColouredTextComponent(DecimalFormat("#.####").format(horseEntity.speed), ChatColor.YELLOW) +
-                        " Jum:" + ColouredTextComponent(DecimalFormat("#.###").format(horseEntity.jumpStrengthAttribute), ChatColor.YELLOW) +
-                        " HP:" + ColouredTextComponent(DecimalFormat("#.#").format(horseEntity.maxHealthAttribute), ChatColor.YELLOW) +
-                        "\nPos: " + horseEntity.location.let { location -> ColouredTextComponent("${location.blockX}, ${location.blockY}, ${location.blockZ}", ChatColor.YELLOW) } +
-                        " in " + ColouredTextComponent(horseEntity.world.name, ChatColor.YELLOW)
-                )))
-            }
-            clickEvent = ClickEvent(ClickEvent.Action.RUN_COMMAND, "/$commandName ${InspectSubcommand.subcommandName} #${horseData.horseId}")
+        val text = Component.text("#" + horseData.horseId, colour)
+        val hoverText = Component.empty().color(NamedTextColor.DARK_PURPLE) + "Spe:" + Component.text(DecimalFormat("#.####").format(horseEntity.speed), NamedTextColor.YELLOW) +
+            " Jum:" + Component.text(DecimalFormat("#.###").format(horseEntity.jumpStrengthAttribute), NamedTextColor.YELLOW) +
+            " HP:" + Component.text(DecimalFormat("#.#").format(horseEntity.maxHealthAttribute), NamedTextColor.YELLOW) +
+            "\nPos: " + horseEntity.location.let { location -> Component.text("${location.blockX}, ${location.blockY}, ${location.blockZ}", NamedTextColor.YELLOW) } +
+            " in " + Component.text(horseEntity.world.name, NamedTextColor.YELLOW)
+
+
+        if (showAttributes) {
+            text.hoverEvent(HoverEvent.showText(hoverText))
         }
+        text.clickEvent(ClickEvent.runCommand("/$commandName ${InspectSubcommand.subcommandName} #${horseData.horseId}"))
 
         if (extendedInfo) {
-            horseText + " - " + ColouredTextComponent((horseData.gender ?: HorseGender.UNIQUE).name, ChatColor.BLUE) +
-                " - " + ColouredTextComponent(horseEntity.owner?.name ?: "Untamed", ChatColor.YELLOW)
+            text + " - " + Component.text((horseData.gender ?: HorseGender.UNIQUE).name, NamedTextColor.BLUE) +
+                " - " + Component.text(horseEntity.owner?.name ?: "Untamed", NamedTextColor.YELLOW)
         }
 
-        return ColouredTextComponent(colour) + horseText
+        return text
     }
 
     fun detailedHorseComponent(
@@ -79,47 +81,47 @@ object HorseUtil {
         showAttributes: Boolean = true,
         commandName: String,
     ) = buildList {
-        fun textParent(parent: String, value: String?) = TextComponent("$parent: ").apply {
-            color = ChatColor.DARK_PURPLE
-            addExtra(TextComponent().apply {
-                color = if (value != null) {
-                    addExtra("#$value")
-                    ChatColor.GREEN
+        fun textParent(parent: String, value: String?) = Component.text("$parent: ").apply {
+            color(NamedTextColor.DARK_PURPLE)
+            append(Component.empty().apply {
+                if (value != null) {
+                    append(Component.text("#$value"))
+                    color(NamedTextColor.GREEN)
                 } else {
-                    addExtra("---")
-                    ChatColor.BLUE
+                    append(Component.text("---"))
+                    color(NamedTextColor.BLUE)
                 }
             })
         }
         add(
-            ColouredTextComponent(ChatColor.DARK_PURPLE) + " ----- " + horseTextComponent(
-                horseData = horseData, horseEntity = horseEntity, colour = ChatColor.BLUE, showAttributes = showAttributes, commandName = commandName
+            Component.text(" ----- ", NamedTextColor.DARK_PURPLE) + horseTextComponent(
+                horseData = horseData, horseEntity = horseEntity, colour = NamedTextColor.BLUE, showAttributes = showAttributes, commandName = commandName
             ) + " ----- "
         )
         add(
-            ColouredTextComponent("Tamer: ", ChatColor.DARK_PURPLE) +
-                TextComponent().apply {
-                    color = if (horseEntity.owner != null) {
-                        addExtra(horseEntity.owner!!.name ?: horseEntity.owner!!.uniqueId.toString())
-                        hoverEvent = HoverEvent(HoverEvent.Action.SHOW_ENTITY, Entity("minecraft:player", horseEntity.owner!!.uniqueId.toString(), TextComponent(horseEntity.owner!!.name)))
-                        ChatColor.GREEN
+            Component.text("Tamer: ", NamedTextColor.DARK_PURPLE) +
+                Component.empty().apply {
+                    if (horseEntity.owner != null) {
+                        this + (horseEntity.owner!!.name ?: horseEntity.owner!!.uniqueId.toString())
+                        color(NamedTextColor.GREEN)
+                        hoverEvent(hoverShowEntity(horseEntity))
                     } else {
-                        addExtra(if (horseEntity.age < 0) "Foal" else "Wild")
-                        ChatColor.BLUE
+                        this + if (horseEntity.age < 0) "Foal" else "Wild"
+                        color(NamedTextColor.BLUE)
                     }
                 }
         )
-        add(ColouredTextComponent("Gender: ", ChatColor.DARK_PURPLE) + ColouredTextComponent((horseData.gender ?: HorseGender.UNIQUE).name, ChatColor.GREEN))
+        add(Component.text("Gender: ", NamedTextColor.DARK_PURPLE) + Component.text(DecimalFormat("#.####").format(horseEntity.speed), NamedTextColor.YELLOW) + "/0.3375")
         if (showAttributes) {
-            add(ColouredTextComponent("Speed: ", ChatColor.DARK_PURPLE) + ColouredTextComponent(DecimalFormat("#.####").format(horseEntity.speed), ChatColor.YELLOW) + "/0.3375")
-            add(ColouredTextComponent("Jump: ", ChatColor.DARK_PURPLE) + ColouredTextComponent(DecimalFormat("#.###").format(horseEntity.jumpStrengthAttribute), ChatColor.YELLOW) + "/1.0")
-            add(ColouredTextComponent("HP: ", ChatColor.DARK_PURPLE) + ColouredTextComponent(DecimalFormat("#.#").format(horseEntity.maxHealthAttribute), ChatColor.YELLOW) + "/30")
+            add(Component.text("Speed: ", NamedTextColor.DARK_PURPLE) + Component.text(DecimalFormat("#.####").format(horseEntity.speed), NamedTextColor.YELLOW) + "/0.3375")
+            add(Component.text("Jump: ", NamedTextColor.DARK_PURPLE) + Component.text(DecimalFormat("#.###").format(horseEntity.jumpStrengthAttribute), NamedTextColor.YELLOW) + "/1.0")
+            add(Component.text("HP: ", NamedTextColor.DARK_PURPLE) + Component.text(DecimalFormat("#.#").format(horseEntity.maxHealthAttribute), NamedTextColor.YELLOW) + "/30")
             if (horseEntity is Llama)
-                add(ColouredTextComponent("Strength: ", ChatColor.DARK_PURPLE) + ColouredTextComponent(horseEntity.strength.toString(), ChatColor.YELLOW) + "/5")
+                add(Component.text("Strength: ", NamedTextColor.DARK_PURPLE) + Component.text(horseEntity.strength.toString(), NamedTextColor.YELLOW) + "/5")
         }
         add(textParent("Sire", horseData.fatherId))
         add(textParent("Dam", horseData.motherId))
-        add(ColouredTextComponent(" ${"-".repeat(5 * 2 + 1 + horseData.horseId.length)} ", ChatColor.DARK_PURPLE))
+        add(Component.text(" ${"-".repeat(5 * 2 + 1 + horseData.horseId.length)} ", NamedTextColor.DARK_PURPLE))
     }
 
     fun generateGender(entityType: EntityType, bias: Double): HorseGender {
@@ -135,4 +137,7 @@ object HorseUtil {
             else -> HorseGender.UNIQUE
         }
     }
+
+    private fun NamespacedKey.toKey(): Key = Key.key(this.namespace, this.key)
+    private fun hoverShowEntity(entity: Entity) = HoverEvent.showEntity(ShowEntity.of(entity.type.key.toKey(), entity.uniqueId))
 }

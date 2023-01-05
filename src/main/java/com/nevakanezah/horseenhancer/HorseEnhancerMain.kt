@@ -8,6 +8,7 @@ import com.nevakanezah.horseenhancer.command.CommandHandler
 import com.nevakanezah.horseenhancer.config.ConfigHandler
 import com.nevakanezah.horseenhancer.database.SQLiteDatabase
 import com.nevakanezah.horseenhancer.listener.HorseEventListener
+import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import org.bukkit.plugin.ServicePriority
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
@@ -15,8 +16,11 @@ import java.io.File
 class HorseEnhancerMain : JavaPlugin() {
     private lateinit var database: SQLiteDatabase
     val configHandler: ConfigHandler = ConfigHandler(this)
+    internal lateinit var audience: BukkitAudiences
 
     override fun onEnable() {
+        audience = BukkitAudiences.create(this)
+
         val databaseFile = File(this.dataFolder, "database.sqlite3")
         databaseFile.parentFile.mkdirs()
         database = SQLiteDatabase(databaseFile, this).apply {
@@ -42,6 +46,9 @@ class HorseEnhancerMain : JavaPlugin() {
     override fun onDisable() {
         if (this::database.isInitialized) {
             database.close()
+        }
+        if (this::audience.isInitialized) {
+            audience.close()
         }
     }
 }

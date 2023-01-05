@@ -4,12 +4,12 @@ import com.nevakanezah.horseenhancer.HorseEnhancerMain
 import com.nevakanezah.horseenhancer.command.CommandHandler
 import com.nevakanezah.horseenhancer.database.SQLiteDatabase
 import com.nevakanezah.horseenhancer.util.HorseUtil
-import com.nevakanezah.horseenhancer.util.TextComponentUtils.ColouredTextComponent
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.CommandTextComponent
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.plus
 import kotlinx.coroutines.flow.toList
-import net.md_5.bungee.api.ChatColor
-import net.md_5.bungee.api.chat.BaseComponent
+import net.kyori.adventure.platform.bukkit.BukkitAudiences
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
@@ -29,64 +29,65 @@ class TeleportSubcommand(main: HorseEnhancerMain) : Subcommand(
             toEntity: Boolean,
             sender: CommandSender,
             command: Command,
-            args: List<String>
+            args: List<String>,
+            audiences: BukkitAudiences,
         ) {
             sender as Player
+            val playerAudience = audiences.player(sender)
             val database: SQLiteDatabase = Bukkit.getServicesManager().load(SQLiteDatabase::class.java)!!
 
             if (args.isEmpty()) {
-                sender.spigot().sendMessage(
-                    ColouredTextComponent(
-                        "Usage: /${command.name} ${this.name} ${CommandHandler.requiredParameter("horseID|horseCustomName")}", ChatColor.RED
-                    )
-                )
+                playerAudience.sendMessage(Component.text(
+                    "Usage: /${command.name} ${this.name} ${CommandHandler.requiredParameter("horseID|horseCustomName")}",
+                    NamedTextColor.RED
+                ))
                 return
             }
 
             val horses = database.searchHorses(query = args).toList()
 
             if (horses.isEmpty()) {
-                sender.spigot().sendMessage(
-                    ColouredTextComponent("No horses found matching: ", ChatColor.RED) + args.joinToString(separator = " ")
+                playerAudience.sendMessage(
+                    Component.text("No horses found matching: ", NamedTextColor.RED) + args.joinToString(separator = " ")
                 )
                 return
             }
             if (horses.size > 1) {
-                val messages = mutableListOf<BaseComponent>()
+                val messages = buildList {
+                    add(
+                        Component.text("Found multiple horses matching ", NamedTextColor.DARK_PURPLE) +
+                            Component.text(args.joinToString(separator = " "), NamedTextColor.GREEN) + ":"
+                    )
+                    horses.map { (horse) ->
+                        CommandTextComponent("#" + horse.horseId, true, NamedTextColor.BLUE, "/${command.name} ${this@handleTeleportCommands.name} #${horse.horseId}")
+                    }.forEach(::add)
+                }
 
-                messages.add(
-                    ColouredTextComponent(ChatColor.DARK_PURPLE) + "Found multiple horses matching " +
-                        ColouredTextComponent(args.joinToString(separator = " "), ChatColor.GREEN) + ":"
-                )
-                horses.map { (horse) ->
-                    CommandTextComponent("#" + horse.horseId, true, ChatColor.BLUE, "/${command.name} ${this.name} #${horse.horseId}")
-                }.forEach(messages::add)
-
-                messages.forEach(sender.spigot()::sendMessage)
+                messages.forEach(playerAudience::sendMessage)
                 return
             }
 
             val (horse, horseEntity) = horses[0]
             val horseTextComponent = HorseUtil.horseTextComponent(
-                horseData = horse, horseEntity = horseEntity, colour = ChatColor.GREEN, commandName = command.name
+                horseData = horse, horseEntity = horseEntity, colour = NamedTextColor.GREEN, commandName = command.name
             )
 
-            val message: BaseComponent = if (toEntity) {
+            val message: Component = if (toEntity) {
                 if (sender.teleport(horseEntity))
-                    ColouredTextComponent("Teleported to ", ChatColor.DARK_PURPLE) + horseTextComponent + "."
+                    Component.text("Teleported to ", NamedTextColor.DARK_PURPLE) + horseTextComponent + "."
                 else
-                    ColouredTextComponent("Could not teleport to ", ChatColor.RED) + horseTextComponent + "."
+                    Component.text("Could not teleport to ", NamedTextColor.RED) + horseTextComponent + "."
             } else {
                 if (horseEntity.teleport(sender))
-                    ColouredTextComponent("Teleported ", ChatColor.DARK_PURPLE) + horseTextComponent + " to you."
+                    Component.text("Teleported ", NamedTextColor.DARK_PURPLE) + horseTextComponent + " to you."
                 else
-                    ColouredTextComponent("Could not teleport ", ChatColor.RED) + horseTextComponent + " to you."
+                    Component.text("Could not teleport ", NamedTextColor.RED) + horseTextComponent + " to you."
             }
-            sender.spigot().sendMessage(message)
+            playerAudience.sendMessage(message)
         }
     }
 
     override suspend fun onCommand(sender: CommandSender, command: Command, label: String, args: List<String>) {
-        handleTeleportCommands(true, sender, command, args)
+        handleTeleportCommands(true, sender, command, args, main.audience)
     }
 }

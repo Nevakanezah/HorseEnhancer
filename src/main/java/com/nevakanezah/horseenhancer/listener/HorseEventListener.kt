@@ -12,11 +12,10 @@ import com.nevakanezah.horseenhancer.util.HorseUtil.maxHealthAttribute
 import com.nevakanezah.horseenhancer.util.HorseUtil.speed
 import com.nevakanezah.horseenhancer.util.LocationUtil.bodyLocation
 import com.nevakanezah.horseenhancer.util.SecretHorses
-import com.nevakanezah.horseenhancer.util.TextComponentUtils.ColouredTextComponent
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.plus
-import com.nevakanezah.horseenhancer.util.TextComponentUtils.sendMessage
 import kotlinx.coroutines.runBlocking
-import net.md_5.bungee.api.ChatColor
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.*
 import org.bukkit.entity.*
 import org.bukkit.event.EventHandler
@@ -86,7 +85,7 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
         val horse = event.rightClicked as? AbstractHorse ?: return
         val player = event.player
         val item = player.inventory.getItem(event.hand)
-        if (item == null || !player.isSneaking)
+        if (item == null || item.type == Material.AIR || item.amount <= 0 || !player.isSneaking)
             return
         val mode = when (item.type) {
             config.tools.inspection -> InteractMode.INSPECT
@@ -96,14 +95,16 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
 
         event.isCancelled = true
 
+        val playerAudience = main.audience.player(player)
+
         database.removeInvalidHorses()
         val horseData = database.getHorse(horse.uniqueId)
         if (horseData == null || !horse.isTamed) {
             if (!player.hasPermission(permissionInspectionWild)) {
-                player.sendMessage(ColouredTextComponent("You cannot ${mode.verb} a wild horse.", ChatColor.RED))
+                playerAudience.sendMessage(Component.text("You cannot ${mode.verb} a wild horse.").color(NamedTextColor.RED))
                 return
             } else if (horseData == null) {
-                player.sendMessage(ColouredTextComponent("This horse is not yet registered.", ChatColor.RED))
+                playerAudience.sendMessage(Component.text("This horse is not yet registered.").color(NamedTextColor.RED))
                 return
             }
         }
@@ -111,30 +112,32 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
         when (mode) {
             InteractMode.INSPECT -> {
                 if (config.enableInspector == Config.InspectorMode.RESTRICT && horse.owner?.uniqueId != player.uniqueId && !player.hasPermission(permissionInspectionOthers)) {
-                    player.sendMessage(ColouredTextComponent("That does not belong to you.", ChatColor.RED))
+                    playerAudience.sendMessage(Component.text("That does not belong to you.").color(NamedTextColor.RED))
                     return
                 }
 
                 val showAttributes = config.enableInspectorAttributes || player.hasPermission(permissionInspectionAttributes)
-                HorseUtil.detailedHorseComponent(
-                    horseData = horseData,
-                    horseEntity = horse,
-                    showAttributes = showAttributes,
-                    commandName = main.description.commands.keys.first()
-                ).forEach(player.spigot()::sendMessage)
+                playerAudience.sendMessage(Component.empty().apply {
+                    HorseUtil.detailedHorseComponent(
+                        horseData = horseData,
+                        horseEntity = horse,
+                        showAttributes = showAttributes,
+                        commandName = main.description.commands.keys.first()
+                    ).forEach(this::append)
+                })
             }
             InteractMode.GELD -> {
                 if (horse.owner != player) {
-                    player.sendMessage(ColouredTextComponent("That does not belong to you.", ChatColor.RED))
+                    playerAudience.sendMessage(Component.text("That does not belong to you.", NamedTextColor.RED))
                     return
                 }
 
                 if (horseData.gender == HorseGender.GELDING) {
-                    player.sendMessage(ColouredTextComponent("Target is already gelded.", ChatColor.RED))
+                    playerAudience.sendMessage(Component.text("Target is already gelded.", NamedTextColor.RED))
                     return
                 }
                 if (!horseData.geld()) {
-                    player.sendMessage(ColouredTextComponent("Target is not male.", ChatColor.RED))
+                    playerAudience.sendMessage(Component.text("Target is not male.", NamedTextColor.RED))
                     return
                 }
 
@@ -153,8 +156,8 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
                     }
                 }
 
-                player.sendMessage(ColouredTextComponent("Successfully gelded ", ChatColor.DARK_PURPLE) +
-                    horseTextComponent(horseData, horse, showAttributes = false, commandName = main.description.commands.keys.first(), colour = ChatColor.BLUE) + ".")
+                playerAudience.sendMessage(Component.text("Successfully gelded ", NamedTextColor.DARK_PURPLE) +
+                    horseTextComponent(horseData, horse, showAttributes = false, commandName = main.description.commands.keys.first(), colour = NamedTextColor.BLUE) + ".")
             }
         }
     }

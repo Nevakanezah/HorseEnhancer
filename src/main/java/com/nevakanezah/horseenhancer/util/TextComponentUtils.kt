@@ -1,21 +1,16 @@
 package com.nevakanezah.horseenhancer.util
 
-import net.md_5.bungee.api.ChatColor
-import net.md_5.bungee.api.chat.BaseComponent
-import net.md_5.bungee.api.chat.ClickEvent
-import net.md_5.bungee.api.chat.HoverEvent
-import net.md_5.bungee.api.chat.TextComponent
-import net.md_5.bungee.api.chat.hover.content.Text
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.event.ClickEvent
+import net.kyori.adventure.text.event.HoverEvent
+import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.TextColor
 import org.bukkit.command.Command
-import org.bukkit.command.CommandSender
 
 @Suppress("FunctionName")
 object TextComponentUtils {
-    operator fun <T : BaseComponent> T.plus(component: BaseComponent) = this.apply { addExtra(component) }
-    operator fun <T : BaseComponent> T.plus(text: String) = this.apply { addExtra(text) }
-
-    fun ColouredTextComponent(colour: ChatColor) = TextComponent().apply { color = colour }
-    fun ColouredTextComponent(text: String?, colour: ChatColor) = TextComponent(text.orEmpty()).apply { color = colour }
+    operator fun Component.plus(component: Component) = this.append(component)
+    operator fun Component.plus(text: String) = this.append(Component.text(text))
 
     /**
      * Generates a TextComponent to represent a command with click event
@@ -26,22 +21,16 @@ object TextComponentUtils {
      * @param colour The colour to be applied to this component.
      * @param command The command to be used in click event.
      */
-    fun CommandTextComponent(display: String, clickToRun: Boolean, colour: ChatColor? = null, command: String = display) = TextComponent(display).apply {
+    fun CommandTextComponent(display: String, clickToRun: Boolean, colour: TextColor? = null, command: String = display) = Component.text(display).apply {
         colour?.let {
-            color = it
+            color(it)
         }
-        clickEvent = ClickEvent(
-            if (clickToRun) ClickEvent.Action.RUN_COMMAND
-            else ClickEvent.Action.SUGGEST_COMMAND,
-            "$command "
+        clickEvent(
+            if (clickToRun) ClickEvent.runCommand("$command ")
+            else ClickEvent.suggestCommand("$command ")
         )
-        hoverEvent = HoverEvent(
-            HoverEvent.Action.SHOW_TEXT,
-            Text(arrayOf(ColouredTextComponent("Click to " + if (clickToRun) "run command" else "paste to chat", ChatColor.LIGHT_PURPLE)))
-        )
+        hoverEvent(HoverEvent.showText(Component.text("Click to " + if (clickToRun) "run command" else "paste to chat", NamedTextColor.LIGHT_PURPLE)))
     }
-
-    fun CommandSender.sendMessage(vararg component: BaseComponent) = this.spigot().sendMessage(*component)
 
     val Command.shortestAlias
         get() = aliases.minByOrNull { it.length } ?: name

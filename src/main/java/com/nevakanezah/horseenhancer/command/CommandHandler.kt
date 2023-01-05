@@ -5,11 +5,12 @@ import com.github.shynixn.mccoroutine.bukkit.SuspendingTabCompleter
 import com.nevakanezah.horseenhancer.HorseEnhancerMain
 import com.nevakanezah.horseenhancer.command.subcommand.*
 import com.nevakanezah.horseenhancer.util.ArgumentParser
-import com.nevakanezah.horseenhancer.util.TextComponentUtils.ColouredTextComponent
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.CommandTextComponent
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.plus
-import net.md_5.bungee.api.ChatColor
-import net.md_5.bungee.api.chat.TextComponent
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.TextDecoration
+import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -34,59 +35,45 @@ class CommandHandler(private val main: HorseEnhancerMain) : SuspendingCommandExe
     )
 
     override suspend fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
-        val textHelp = TextComponent().apply {
-            color = ChatColor.DARK_PURPLE
-            addExtra("Use ")
-            addExtra(CommandTextComponent("/${command.name} help", clickToRun = true).apply {
-                color = ChatColor.GREEN
-            })
-            addExtra(" for a list of commands.")
-        }
+        val senderAudience = main.audience.sender(sender)
+
+        val textHelp = Component.empty().color(NamedTextColor.DARK_PURPLE) +
+            "Use " + CommandTextComponent("/${command.name} help", clickToRun = true).color(NamedTextColor.GREEN) + " for a list of commands."
 
         if (args.isEmpty()) {
-            val textHeader = TextComponent().apply {
-                addExtra(TextComponent().apply {
-                    color = ChatColor.DARK_PURPLE
-                    addExtra(main.description.name).apply {
-                        isBold = true
-                    }
-                    addExtra(" ")
-                    addExtra(main.description.version).apply {
-                        isBold = true
-                    }
-                    addExtra(" by ")
-                })
-                addExtra(TextComponent().apply {
-                    addExtra(ColouredTextComponent("Nev", ChatColor.BLUE))
-                    addExtra(ColouredTextComponent("a", ChatColor.DARK_GREEN))
-                    addExtra(ColouredTextComponent("ka", ChatColor.GOLD))
-                    addExtra(ColouredTextComponent("nez", ChatColor.DARK_RED))
-                    addExtra(ColouredTextComponent("ah", ChatColor.LIGHT_PURPLE))
-                })
-            }
-            val textSupportedVersion = TextComponent().apply {
-                addExtra(ColouredTextComponent("For Minecraft version: ", ChatColor.DARK_PURPLE))
-                addExtra(ColouredTextComponent(main.description.apiVersion!!, ChatColor.GREEN))
-            }
-            val textAlias = TextComponent().apply {
-                color = ChatColor.DARK_PURPLE
-                addExtra("Aliases: ")
+            val textHeader = Component.empty().color(NamedTextColor.DARK_PURPLE) +
+                Component.text(main.description.name).decorate(TextDecoration.BOLD) +
+                " " +
+                Component.text(main.description.version).decorate(TextDecoration.BOLD) +
+                " by " +
+                (
+                    Component.empty() +
+                        Component.text("Nev", NamedTextColor.BLUE) +
+                        Component.text("a", NamedTextColor.DARK_GREEN) +
+                        Component.text("ka", NamedTextColor.GOLD) +
+                        Component.text("nez", NamedTextColor.DARK_RED) +
+                        Component.text("ah", NamedTextColor.LIGHT_PURPLE)
+                    )
+            val textSupportedVersion = Component.empty() +
+                Component.text("For Minecraft version: ", NamedTextColor.DARK_PURPLE) +
+                Component.text(main.description.apiVersion ?: Bukkit.getBukkitVersion(), NamedTextColor.GREEN)
+            val textAlias = Component.text("Aliases: ", NamedTextColor.DARK_PURPLE).apply {
                 command.aliases.toMutableList().apply { add(0, command.name) }.forEachIndexed { index, alias ->
-                    addExtra(CommandTextComponent("/$alias", clickToRun = false).apply {
-                        color = ChatColor.GREEN
+                    append(CommandTextComponent("/$alias", clickToRun = false).apply {
+                        color(NamedTextColor.GREEN)
                     })
                     if (index < command.aliases.size) {
-                        addExtra(", ")
+                        append(Component.text(", "))
                     }
                 }
             }
 
-            listOf(
+            arrayOf(
                 textHeader,
                 textSupportedVersion,
                 textAlias,
                 textHelp,
-            ).forEach(sender.spigot()::sendMessage)
+            ).forEach(senderAudience::sendMessage)
             return true
         }
 
@@ -96,22 +83,19 @@ class CommandHandler(private val main: HorseEnhancerMain) : SuspendingCommandExe
 
         if (subcommand != null) {
             if (subcommand.playersOnly && sender !is Player) {
-                sender.spigot()
-                    .sendMessage(ColouredTextComponent("This command is only available to players.", ChatColor.RED))
+                senderAudience.sendMessage(Component.text("This command is only available to players.", NamedTextColor.RED))
                 return true
             }
 
             if (subcommand.permission != null && !sender.hasPermission(subcommand.permission)) {
-                sender.spigot()
-                    .sendMessage(ColouredTextComponent("You do not have the required permission to run this command.", ChatColor.RED))
+                senderAudience.sendMessage(Component.text("You do not have the required permission to run this command.", NamedTextColor.RED))
                 return true
             }
 
             subcommand.onCommand(sender = sender, command = command, label = label, args = mergedArgs.subList(1, mergedArgs.size))
         } else {
-            sender.spigot().sendMessage(
-                ColouredTextComponent(ChatColor.DARK_PURPLE)
-                    + "Command \"" + ColouredTextComponent(subcommandName, ChatColor.YELLOW) + "\" not found. " + textHelp
+            senderAudience.sendMessage(
+                Component.text("Command \"", NamedTextColor.DARK_PURPLE) + Component.text(subcommandName, NamedTextColor.YELLOW) + "\" not found. " + textHelp
             )
         }
 

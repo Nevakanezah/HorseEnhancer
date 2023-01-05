@@ -11,16 +11,15 @@ import com.nevakanezah.horseenhancer.util.HorseUtil.maxHealthAttribute
 import com.nevakanezah.horseenhancer.util.HorseUtil.speed
 import com.nevakanezah.horseenhancer.util.HorseUtil.toTextComponent
 import com.nevakanezah.horseenhancer.util.SecretHorses
-import com.nevakanezah.horseenhancer.util.TextComponentUtils.ColouredTextComponent
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.CommandTextComponent
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.plus
-import com.nevakanezah.horseenhancer.util.TextComponentUtils.sendMessage
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.shortestAlias
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.subList
 import kotlinx.coroutines.flow.toList
-import net.md_5.bungee.api.ChatColor
-import net.md_5.bungee.api.chat.BaseComponent
-import net.md_5.bungee.api.chat.ClickEvent
+import net.kyori.adventure.platform.bukkit.BukkitAudiences
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.event.ClickEvent
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
@@ -61,42 +60,58 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
             Argument("l", "strength", "Llama-only integer strength attribute.", "[1 - 5]"),
         )
 
-        fun Subcommand.generateSummonHelpTexts(command: Command, updateMode: Boolean): List<BaseComponent> {
-            val messages = mutableListOf<BaseComponent>()
-
-            messages += ColouredTextComponent(ChatColor.DARK_PURPLE) + CommandTextComponent("/${command.shortestAlias} ${this.name}", false, command = "${command.name} ${this.name}") +
-                if (updateMode) " - Change data & attributes of an existing horse"
-                else " - Summons a horse with specified attributes."
-            messages += ColouredTextComponent(ChatColor.DARK_PURPLE) + "Usage: " + CommandTextComponent(
-                "/${command.shortestAlias} ${this.name} " + (
-                    if (updateMode) CommandHandler.requiredParameter("horse ID|custom name")
-                    else CommandHandler.requiredParameter("gender") + " " + CommandHandler.optionalParameter("custom name")
+        fun Subcommand.generateSummonHelpTexts(command: Command, updateMode: Boolean): List<Component> {
+            return buildList {
+                add(
+                    Component.empty().color(NamedTextColor.DARK_PURPLE) + CommandTextComponent(
+                        "/${command.shortestAlias} ${this@generateSummonHelpTexts.name}",
+                        false,
+                        command = "${command.name} ${this@generateSummonHelpTexts.name}"
                     ) +
-                    " " + CommandHandler.optionalParameter("arguments"),
-                clickToRun = false,
-                colour = ChatColor.YELLOW,
-                command = "/${command.name} ${this.name}"
-            )
-            messages += ColouredTextComponent("Available arguments:", ChatColor.DARK_PURPLE)
+                        if (updateMode) " - Change data & attributes of an existing horse"
+                        else " - Summons a horse with specified attributes."
+                )
+                add(
+                    Component.text("Usage: ", NamedTextColor.DARK_PURPLE) + CommandTextComponent(
+                        "/${command.shortestAlias} ${this@generateSummonHelpTexts.name} " + (
+                            if (updateMode) CommandHandler.requiredParameter("horse ID|custom name")
+                            else CommandHandler.requiredParameter("gender") + " " + CommandHandler.optionalParameter("custom name")
+                            ) +
+                            " " + CommandHandler.optionalParameter("arguments"),
+                        clickToRun = false,
+                        colour = NamedTextColor.YELLOW,
+                        command = "/${command.name} ${this@generateSummonHelpTexts.name}"
+                    )
+                )
+                add(Component.text("Available arguments:", NamedTextColor.DARK_PURPLE))
 
-            fun addArgument(flag: String, parameterName: String, description: String) {
-                messages += ColouredTextComponent("-$flag ${CommandHandler.requiredParameter(parameterName)} ", ChatColor.AQUA) +
-                    ColouredTextComponent(description, ChatColor.YELLOW)
+                fun addArgument(flag: String, parameterName: String, description: String) {
+                    add(
+                        Component.text("-$flag ${CommandHandler.requiredParameter(parameterName)} ", NamedTextColor.AQUA) +
+                            Component.text(description, NamedTextColor.YELLOW)
+                    )
+                }
+
+                for (argument in arguments) {
+                    if (!updateMode && argument.updateMode)
+                        continue
+                    addArgument(argument.flag, argument.name, argument.description + argument.hint?.let { " $it" }.orEmpty())
+                }
             }
-
-            for (argument in arguments) {
-                if (!updateMode && argument.updateMode)
-                    continue
-                addArgument(argument.flag, argument.name, argument.description + argument.hint?.let { " $it" }.orEmpty())
-            }
-
-            return messages
         }
 
-        suspend fun processHorseModificationArguments(sender: CommandSender, args: List<String>, horseEntity: AbstractHorse, horseData: Horse, commandName: String) {
+        suspend fun processHorseModificationArguments(
+            sender: CommandSender,
+            args: List<String>,
+            horseEntity: AbstractHorse,
+            horseData: Horse,
+            commandName: String,
+            audiences: BukkitAudiences,
+        ) {
             if (args.isEmpty())
                 return
 
+            val senderAudience = audiences.sender(sender)
             val database: SQLiteDatabase = Bukkit.getServicesManager().load(SQLiteDatabase::class.java)!!
 
             val remainingArgs = if (!args[0].startsWith('-')) {
@@ -105,148 +120,147 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
             } else args
 
             if (remainingArgs.size == 1) {
-                sender.spigot().sendMessage(
-                    ColouredTextComponent("Trailing argument \"", ChatColor.RED) +
-                        ColouredTextComponent(remainingArgs[0], ChatColor.DARK_PURPLE) + "\". Please provide a value for the argument."
+                senderAudience.sendMessage(
+                    Component.text("Trailing argument \"", NamedTextColor.RED) +
+                        Component.text(remainingArgs[0], NamedTextColor.DARK_PURPLE) +
+                        "\". Please provide a value for the argument."
                 )
-            } else {
-                var processedNext = false
-                remainingArgs.zipWithNext { argument, value ->
-                    if (processedNext) {
-                        processedNext = false
-                        return@zipWithNext
-                    }
-
-                    suspend fun getHorse(): List<Pair<Horse, AbstractHorse>>? {
-                        val result = database.searchHorses(listOf(value)).toList()
-                        if (result.isEmpty()) {
-                            sender.sendMessage(
-                                ColouredTextComponent("Could not find the specified horse: ", ChatColor.RED) +
-                                    ColouredTextComponent(value, ChatColor.DARK_PURPLE)
-                            )
-                            return null
-                        }
-                        return result
-                    }
-
-                    if (!argument.startsWith('-')) return@zipWithNext
-                    when (argument.substring(1)) {
-                        "g" -> {
-                            val bias = when (value.lowercase())
-                            {
-                                "male", "m" -> 1.0
-                                "female", "f" -> 0.0
-                                else -> {
-                                    sender.spigot().sendMessage(
-                                        ColouredTextComponent("Gender must either be male or female: ", ChatColor.RED) +
-                                            ColouredTextComponent(value, ChatColor.DARK_PURPLE)
-                                    )
-                                    return@zipWithNext
-                                }
-                            }
-                            horseData.gender = generateGender(horseEntity.type, bias)
-                        }
-
-                        "s" -> {
-                            val speed = value.toDoubleOrNull()
-                            if (speed == null) {
-                                sender.spigot().sendMessage(
-                                    ColouredTextComponent("Invalid ", ChatColor.RED) +
-                                        "speed" + " value: " + ColouredTextComponent(value, ChatColor.DARK_PURPLE)
-                                )
-                                return@zipWithNext
-                            }
-                            horseEntity.speed = speed
-                        }
-
-                        "j" -> {
-                            val jump = value.toDoubleOrNull()
-                            if (jump == null) {
-                                sender.spigot().sendMessage(
-                                    ColouredTextComponent("Invalid ", ChatColor.RED) +
-                                        "jump strength" + " value: " + ColouredTextComponent(value, ChatColor.DARK_PURPLE)
-                                )
-                                return@zipWithNext
-                            }
-                            horseEntity.jumpStrength = jump
-                        }
-
-                        "h" -> {
-                            val health = value.toDoubleOrNull()
-                            if (health == null) {
-                                sender.spigot().sendMessage(
-                                    ColouredTextComponent("Invalid ", ChatColor.RED) +
-                                        "max health" + " value: " + ColouredTextComponent(value, ChatColor.DARK_PURPLE)
-                                )
-                                return@zipWithNext
-                            }
-                            horseEntity.maxHealthAttribute = health
-                        }
-
-                        "o" -> {
-                            val player = Bukkit.getPlayer(value)
-                            if (player == null) {
-                                sender.spigot().sendMessage(
-                                    ColouredTextComponent("Could not find the player ", ChatColor.RED) +
-                                        ColouredTextComponent(value, ChatColor.DARK_PURPLE) + "."
-                                )
-                                return@zipWithNext
-                            }
-                            horseEntity.owner = player
-                        }
-
-                        "f" -> {
-                            // fixme Needs to handle multiple results
-                            val parents = getHorse() ?: return@zipWithNext
-                            if (parents.size > 1) {
-                                sender.sendMessage(ColouredTextComponent("There are more than 1 horse found for the father:", ChatColor.DARK_PURPLE))
-                                for ((parentData, parentEntity) in parents) {
-                                    sender.sendMessage(horseTextComponent(parentData, parentEntity, commandName = commandName, colour = ChatColor.BLUE).apply {
-                                        clickEvent = ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/$commandName ${UpdateSubcommand.subcommandName} #${horseData.horseId} -f #${parentData.horseId}")
-                                    })
-                                }
-                                sender.sendMessage(ColouredTextComponent(ChatColor.DARK_PURPLE))
-                                return@zipWithNext
-                            }
-                            horseData.fatherUid = parents.first().second.uniqueId.toString()
-                        }
-
-                        "m" -> {
-                            val parents = getHorse() ?: return@zipWithNext
-                            if (parents.size > 1) {
-                                sender.sendMessage(ColouredTextComponent("There are more than 1 horse found for the mother:", ChatColor.DARK_PURPLE))
-                                for ((parentData, parentEntity) in parents) {
-                                    sender.sendMessage(horseTextComponent(parentData, parentEntity, commandName = commandName, colour = ChatColor.BLUE).apply {
-                                        clickEvent = ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/$commandName ${UpdateSubcommand.subcommandName} #${horseData.horseId} -m #${parentData.horseId}")
-                                    })
-                                }
-                                return@zipWithNext
-                            }
-                            horseData.motherUid = parents.first().second.uniqueId.toString()
-                        }
-
-                        "l" -> {
-                            if (horseEntity !is Llama) {
-                                sender.spigot().sendMessage(
-                                    ColouredTextComponent("Strength can only be set for llamas.", ChatColor.RED)
-                                )
-                                return@zipWithNext
-                            }
-                            val strength = value.toIntOrNull()
-                            if (strength == null) {
-                                sender.spigot().sendMessage(
-                                    ColouredTextComponent("Invalid ", ChatColor.RED) +
-                                        "strength" + " value: " + ColouredTextComponent(value, ChatColor.DARK_PURPLE)
-                                )
-                                return@zipWithNext
-                            }
-                            horseEntity.strength = strength.coerceAtLeast(1).coerceAtMost(5)
-                        }
-
-                        else -> return@zipWithNext
-                    }
-                    processedNext = true
+                return
+            }
+            var processedNext = false
+            remainingArgs.zipWithNext { argument, value ->
+                if (processedNext) {
+                    processedNext = false
+                    return@zipWithNext
                 }
+
+                suspend fun getHorse(): List<Pair<Horse, AbstractHorse>>? {
+                    val result = database.searchHorses(listOf(value)).toList()
+                    if (result.isEmpty()) {
+                        senderAudience.sendMessage(
+                            Component.text("Could not find the specified horse: ", NamedTextColor.RED) +
+                                Component.text(value, NamedTextColor.DARK_PURPLE)
+                        )
+                        return null
+                    }
+                    return result
+                }
+
+                if (!argument.startsWith('-')) return@zipWithNext
+                when (argument.substring(1)) {
+                    "g" -> {
+                        val bias = when (value.lowercase())
+                        {
+                            "male", "m" -> 1.0
+                            "female", "f" -> 0.0
+                            else -> {
+                                senderAudience.sendMessage(
+                                    Component.text("Gender must either be male or female: ", NamedTextColor.RED) +
+                                        Component.text(value, NamedTextColor.DARK_PURPLE)
+                                )
+                                return@zipWithNext
+                            }
+                        }
+                        horseData.gender = generateGender(horseEntity.type, bias)
+                    }
+
+                    "s" -> {
+                        val speed = value.toDoubleOrNull()
+                        if (speed == null) {
+                            senderAudience.sendMessage(
+                                Component.text("Invalid ", NamedTextColor.RED) +
+                                    "speed" + " value: " + Component.text(value, NamedTextColor.DARK_PURPLE)
+                            )
+                            return@zipWithNext
+                        }
+                        horseEntity.speed = speed
+                    }
+
+                    "j" -> {
+                        val jump = value.toDoubleOrNull()
+                        if (jump == null) {
+                            senderAudience.sendMessage(
+                                Component.text("Invalid ", NamedTextColor.RED) +
+                                    "jump strength" + " value: " + Component.text(value, NamedTextColor.DARK_PURPLE)
+                            )
+                            return@zipWithNext
+                        }
+                        horseEntity.jumpStrength = jump
+                    }
+
+                    "h" -> {
+                        val health = value.toDoubleOrNull()
+                        if (health == null) {
+                            senderAudience.sendMessage(
+                                Component.text("Invalid ", NamedTextColor.RED) +
+                                    "max health" + " value: " + Component.text(value, NamedTextColor.DARK_PURPLE)
+                            )
+                            return@zipWithNext
+                        }
+                        horseEntity.maxHealthAttribute = health
+                    }
+
+                    "o" -> {
+                        val player = Bukkit.getPlayer(value)
+                        if (player == null) {
+                            senderAudience.sendMessage(
+                                Component.text("Could not find the player ", NamedTextColor.RED) +
+                                    Component.text(value, NamedTextColor.DARK_PURPLE) + "."
+                            )
+                            return@zipWithNext
+                        }
+                        horseEntity.owner = player
+                    }
+
+                    "f" -> {
+                        val parents = getHorse() ?: return@zipWithNext
+                        if (parents.size > 1) {
+                            senderAudience.sendMessage(Component.text("There are more than 1 horse found for the father:", NamedTextColor.DARK_PURPLE))
+                            for ((parentData, parentEntity) in parents) {
+                                senderAudience.sendMessage(horseTextComponent(parentData, parentEntity, commandName = commandName, colour = NamedTextColor.BLUE).apply {
+                                    clickEvent(ClickEvent.suggestCommand("/$commandName ${UpdateSubcommand.subcommandName} #${horseData.horseId} -f #${parentData.horseId}"))
+                                })
+                            }
+                            return@zipWithNext
+                        }
+                        horseData.fatherUid = parents.first().second.uniqueId.toString()
+                    }
+
+                    "m" -> {
+                        val parents = getHorse() ?: return@zipWithNext
+                        if (parents.size > 1) {
+                            senderAudience.sendMessage(Component.text("There are more than 1 horse found for the mother:", NamedTextColor.DARK_PURPLE))
+                            for ((parentData, parentEntity) in parents) {
+                                senderAudience.sendMessage(horseTextComponent(parentData, parentEntity, commandName = commandName, colour = NamedTextColor.BLUE).apply {
+                                    clickEvent(ClickEvent.suggestCommand("/$commandName ${UpdateSubcommand.subcommandName} #${horseData.horseId} -m #${parentData.horseId}"))
+                                })
+                            }
+                            return@zipWithNext
+                        }
+                        horseData.motherUid = parents.first().second.uniqueId.toString()
+                    }
+
+                    "l" -> {
+                        if (horseEntity !is Llama) {
+                            senderAudience.sendMessage(
+                                Component.text("Strength can only be set for llamas.", NamedTextColor.RED)
+                            )
+                            return@zipWithNext
+                        }
+                        val strength = value.toIntOrNull()
+                        if (strength == null) {
+                            senderAudience.sendMessage(
+                                Component.text("Invalid ", NamedTextColor.RED) +
+                                    "strength" + " value: " + Component.text(value, NamedTextColor.DARK_PURPLE)
+                            )
+                            return@zipWithNext
+                        }
+                        horseEntity.strength = strength.coerceIn(1..5)
+                    }
+
+                    else -> return@zipWithNext
+                }
+                processedNext = true
             }
         }
 
@@ -272,22 +286,22 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
 
     override suspend fun onCommand(sender: CommandSender, command: Command, label: String, args: List<String>) {
         sender as Player
+        val senderAudience = main.audience.sender(sender)
 
         if (args.isEmpty()) {
-            sender.spigot().sendMessage(
-                ColouredTextComponent("Horse gender required! ", ChatColor.RED) +
-                    "Use " + CommandTextComponent("/${command.shortestAlias} ${this.name} help", true, colour = ChatColor.DARK_PURPLE, command = "/${command.name} ${this.name} help") +
+            senderAudience.sendMessage(
+                Component.text("Horse gender required! ", NamedTextColor.RED) +
+                    "Use " +
+                    CommandTextComponent("/${command.shortestAlias} ${this.name} help", true, colour = NamedTextColor.DARK_PURPLE, command = "/${command.name} ${this.name} help") +
                     " help for more information."
             )
             return
         }
 
-        //region Help section
         if (args[0].equals("help", ignoreCase = true)) {
-            generateSummonHelpTexts(command, false).forEach(sender.spigot()::sendMessage)
+            generateSummonHelpTexts(command, false).forEach(senderAudience::sendMessage)
             return
         }
-        //endregion
 
         var genderArg = args[0]
         val entityType: EntityType
@@ -306,44 +320,44 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
             }
             "maximule" -> {
                 val result = SecretHorses.spawnMaximule(sender.location)
-                sender.spigot().sendMessage(
-                    ColouredTextComponent("Summoned ", ChatColor.DARK_PURPLE) +
-                        result.toTextComponent(colour = ChatColor.BLUE, commandName = command.name)
+                senderAudience.sendMessage(
+                    Component.text("Summoned ", NamedTextColor.DARK_PURPLE) +
+                        result.toTextComponent(colour = NamedTextColor.BLUE, commandName = command.name)
                 )
                 database.addHorse(result.first)
                 return
             }
             "invincible" -> {
                 val result = SecretHorses.spawnInvincible(sender.location)
-                sender.spigot().sendMessage(
-                    ColouredTextComponent("Summoned ", ChatColor.DARK_PURPLE) +
-                        result.toTextComponent(colour = ChatColor.BLUE, commandName = command.name)
+                senderAudience.sendMessage(
+                    Component.text("Summoned ", NamedTextColor.DARK_PURPLE) +
+                        result.toTextComponent(colour = NamedTextColor.BLUE, commandName = command.name)
                 )
                 database.addHorse(result.first)
                 return
             }
             else -> {
-                val message = ColouredTextComponent("Invalid gender. Valid options include: ", ChatColor.RED)
+                val message = Component.text("Invalid gender. Valid options include: ", NamedTextColor.RED)
 
                 val options = listOf("Stallion", "Mare", "Gelding", "Mule", "Jenny", "Jack", "Dam", "Herdsire", "Skeleton", "Zombie")
                 options.forEachIndexed { i, option ->
                     message.apply {
-                        addExtra(CommandTextComponent(option, false, ChatColor.DARK_PURPLE, "/${command.name} ${this@SummonSubcommand.name} $option"))
-                        if (i <= options.size - 2) addExtra(", ")
-                        if (i == options.size - 2) addExtra("and ")
+                        append(CommandTextComponent(option, false, NamedTextColor.DARK_PURPLE, "/${command.name} ${this@SummonSubcommand.name} $option"))
+                        if (i <= options.size - 2) append(Component.text(", "))
+                        if (i == options.size - 2) append(Component.text("and "))
                     }
                 }
 
-                sender.spigot().sendMessage(message)
+                senderAudience.sendMessage(message)
                 return
             }
         }
 
         val gender = HorseGender.values().find { it.name.equals(genderArg, ignoreCase = true) }
         if (gender == null) {
-            sender.spigot().sendMessage(
-                ColouredTextComponent("Could not find a gender that matches \"", ChatColor.RED) +
-                    ColouredTextComponent(genderArg, ChatColor.DARK_PURPLE) + "\".")
+            senderAudience.sendMessage(
+                Component.text("Could not find a gender that matches \"", NamedTextColor.RED) +
+                    Component.text(genderArg, NamedTextColor.DARK_PURPLE) + "\".")
             return
         }
 
@@ -356,7 +370,7 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
             this.gender = gender
         }
 
-        processHorseModificationArguments(sender, args.subList(1, args.size), horseEntity, horseData, commandName = command.name)
+        processHorseModificationArguments(sender, args.subList(1, args.size), horseEntity, horseData, commandName = command.name, main.audience)
         database.addHorse(horseData)
     }
 

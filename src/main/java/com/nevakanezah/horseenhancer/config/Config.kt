@@ -11,7 +11,7 @@ import space.arim.dazzleconf.annote.ConfDefault.*
 )
 interface Config {
     @get:ConfKey("enable-inspector")
-    @get:DefaultString("TRUE")
+    @get:DefaultString("RESTRICT")
     @get:ConfComments(
         "Toggle the ability to inspect horses. Ops will always have this ability.",
         "TRUE - All players can inspect any horse.",
