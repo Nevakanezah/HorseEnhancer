@@ -1,3 +1,5 @@
+@file:Suppress("removal")
+
 package com.nevakanezah.horseenhancer
 
 import com.github.shynixn.mccoroutine.bukkit.launch
@@ -9,14 +11,20 @@ import com.nevakanezah.horseenhancer.config.ConfigHandler
 import com.nevakanezah.horseenhancer.database.SQLiteDatabase
 import com.nevakanezah.horseenhancer.listener.HorseEventListener
 import net.kyori.adventure.platform.bukkit.BukkitAudiences
+import org.bukkit.plugin.PluginDescriptionFile
 import org.bukkit.plugin.ServicePriority
 import org.bukkit.plugin.java.JavaPlugin
+import org.bukkit.plugin.java.JavaPluginLoader
 import java.io.File
 
-class HorseEnhancerMain : JavaPlugin() {
-    private lateinit var database: SQLiteDatabase
+class HorseEnhancerMain : JavaPlugin {
+    internal lateinit var database: SQLiteDatabase
     val configHandler: ConfigHandler = ConfigHandler(this)
+    internal val eventListener: HorseEventListener by lazy { HorseEventListener(this@HorseEnhancerMain) }
     internal lateinit var audience: BukkitAudiences
+
+    constructor() : super()
+    constructor(loader: JavaPluginLoader, description: PluginDescriptionFile, dataFolder: File, file: File) : super(loader, description, dataFolder, file)
 
     override fun onEnable() {
         audience = BukkitAudiences.create(this)
@@ -39,7 +47,7 @@ class HorseEnhancerMain : JavaPlugin() {
             }
 
         server.pluginManager.apply {
-            registerSuspendingEvents(HorseEventListener(this@HorseEnhancerMain), this@HorseEnhancerMain)
+            registerSuspendingEvents(eventListener, this@HorseEnhancerMain)
         }
     }
 
