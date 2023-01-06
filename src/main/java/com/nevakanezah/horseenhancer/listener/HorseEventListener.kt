@@ -297,7 +297,7 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
         database.addHorse(childData)
     }
 
-    /*@EventHandler(ignoreCancelled = true)
+    @EventHandler(ignoreCancelled = true)
     fun testingResetHorse(event: PlayerInteractEntityEvent) {
         val horse = event.rightClicked
         if (horse !is AbstractHorse)
@@ -336,5 +336,5 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
         player.playSound(horse, Sound.ENTITY_HORSE_EAT, 0.5f, 0.7f)
         horse.domestication = horse.maxDomestication - 1
         event.isCancelled = true
-    }*/
+    }
 }
