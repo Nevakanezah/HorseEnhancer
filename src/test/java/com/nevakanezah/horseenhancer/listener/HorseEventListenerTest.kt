@@ -14,6 +14,7 @@ import com.nevakanezah.horseenhancer.util.HorseUtil
 import kotlinx.coroutines.runBlocking
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.attribute.Attribute
@@ -24,6 +25,7 @@ import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.permissions.PermissionAttachment
 import org.junit.jupiter.api.*
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 internal object HorseEventListenerTest {
@@ -185,15 +187,17 @@ internal object HorseEventListenerTest {
         plugin.eventListener.onPlayerInteractHorse(event)
 
         val horseData = assertNotNull(database.getHorse(horse.uniqueId))
-        val text = Component.empty().apply {
-            HorseUtil.detailedHorseComponent(
-                horseData = horseData,
-                horseEntity = horse,
-                showAttributes = true,
-                commandName = plugin.description.commands.keys.first()
-            ).forEach(this::append)
-        }
+        val expectedMessages = HorseUtil.detailedHorseComponent(
+            horseData = horseData,
+            horseEntity = horse,
+            showAttributes = true,
+            commandName = plugin.description.commands.keys.first(),
+        )
 
-        player.assertSaid(text)
+        val legacyTextSerializer = LegacyComponentSerializer.legacySection()
+        for (expectedMessage in expectedMessages) {
+            val actualMessage = assertNotNull(player.nextComponentMessage())
+            assertEquals(legacyTextSerializer.serialize(expectedMessage), legacyTextSerializer.serialize(actualMessage), "Message content not the same")
+        }
     }
 }

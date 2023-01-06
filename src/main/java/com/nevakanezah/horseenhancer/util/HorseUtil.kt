@@ -3,6 +3,7 @@ package com.nevakanezah.horseenhancer.util
 import com.nevakanezah.horseenhancer.command.subcommand.InspectSubcommand
 import com.nevakanezah.horseenhancer.database.table.Horse
 import com.nevakanezah.horseenhancer.model.HorseGender
+import com.nevakanezah.horseenhancer.util.TextComponentUtils.append
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.plus
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
@@ -54,7 +55,7 @@ object HorseUtil {
         showAttributes: Boolean = true,
         colour: TextColor = NamedTextColor.DARK_PURPLE,
     ): TextComponent {
-        val text = Component.text("#" + horseData.horseId, colour)
+        val text = Component.text().content("#" + horseData.horseId).color(colour)
         val hoverText = Component.empty().color(NamedTextColor.DARK_PURPLE) + "Spe:" + Component.text(DecimalFormat("#.####").format(horseEntity.speed), NamedTextColor.YELLOW) +
             " Jum:" + Component.text(DecimalFormat("#.###").format(horseEntity.jumpStrengthAttribute), NamedTextColor.YELLOW) +
             " HP:" + Component.text(DecimalFormat("#.#").format(horseEntity.maxHealthAttribute), NamedTextColor.YELLOW) +
@@ -72,7 +73,7 @@ object HorseUtil {
                 " - " + Component.text(horseEntity.owner?.name ?: "Untamed", NamedTextColor.YELLOW)
         }
 
-        return text
+        return text.build()
     }
 
     fun detailedHorseComponent(
@@ -81,18 +82,16 @@ object HorseUtil {
         showAttributes: Boolean = true,
         commandName: String,
     ) = buildList {
-        fun textParent(parent: String, value: String?) = Component.text("$parent: ").apply {
-            color(NamedTextColor.DARK_PURPLE)
-            append(Component.empty().apply {
+        fun textParent(parent: String, value: String?) = Component
+            .text("$parent: ")
+            .color(NamedTextColor.DARK_PURPLE)
+            .append(Component.empty().run {
                 if (value != null) {
-                    append(Component.text("#$value"))
-                    color(NamedTextColor.GREEN)
+                    append("#$value").color(NamedTextColor.GREEN)
                 } else {
-                    append(Component.text("---"))
-                    color(NamedTextColor.BLUE)
+                    append("---").color(NamedTextColor.BLUE)
                 }
             })
-        }
         add(
             Component.text(" ----- ", NamedTextColor.DARK_PURPLE) + horseTextComponent(
                 horseData = horseData, horseEntity = horseEntity, colour = NamedTextColor.BLUE, showAttributes = showAttributes, commandName = commandName
@@ -100,18 +99,18 @@ object HorseUtil {
         )
         add(
             Component.text("Tamer: ", NamedTextColor.DARK_PURPLE) +
-                Component.empty().apply {
+                Component.empty().run {
                     if (horseEntity.owner != null) {
-                        this + (horseEntity.owner!!.name ?: horseEntity.owner!!.uniqueId.toString())
-                        color(NamedTextColor.GREEN)
-                        hoverEvent(hoverShowEntity(horseEntity))
+                        append(horseEntity.owner!!.name ?: horseEntity.owner!!.uniqueId.toString())
+                            .color(NamedTextColor.GREEN)
+                            .hoverEvent(hoverShowEntity(horseEntity))
                     } else {
-                        this + if (horseEntity.age < 0) "Foal" else "Wild"
-                        color(NamedTextColor.BLUE)
+                        append(if (horseEntity.age < 0) "Foal" else "Wild")
+                            .color(NamedTextColor.BLUE)
                     }
                 }
         )
-        add(Component.text("Gender: ", NamedTextColor.DARK_PURPLE) + Component.text(DecimalFormat("#.####").format(horseEntity.speed), NamedTextColor.YELLOW) + "/0.3375")
+        add(Component.text("Gender: ", NamedTextColor.DARK_PURPLE) + Component.text((horseData.gender ?: HorseGender.UNIQUE).name, NamedTextColor.GREEN))
         if (showAttributes) {
             add(Component.text("Speed: ", NamedTextColor.DARK_PURPLE) + Component.text(DecimalFormat("#.####").format(horseEntity.speed), NamedTextColor.YELLOW) + "/0.3375")
             add(Component.text("Jump: ", NamedTextColor.DARK_PURPLE) + Component.text(DecimalFormat("#.###").format(horseEntity.jumpStrengthAttribute), NamedTextColor.YELLOW) + "/1.0")

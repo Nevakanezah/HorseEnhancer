@@ -37,10 +37,14 @@ class TeleportSubcommand(main: HorseEnhancerMain) : Subcommand(
             val database: SQLiteDatabase = Bukkit.getServicesManager().load(SQLiteDatabase::class.java)!!
 
             if (args.isEmpty()) {
-                playerAudience.sendMessage(Component.text(
-                    "Usage: /${command.name} ${this.name} ${CommandHandler.requiredParameter("horseID|horseCustomName")}",
-                    NamedTextColor.RED
-                ))
+                playerAudience.sendMessage(
+                    Component.text("Usage: ", NamedTextColor.RED) +
+                    CommandTextComponent(
+                        "/${command.name} ${this.name} ${CommandHandler.requiredParameter("horseID|horseCustomName")}",
+                        false,
+                        command = "/${command.name} ${this.name}"
+                    )
+                )
                 return
             }
 
@@ -59,7 +63,12 @@ class TeleportSubcommand(main: HorseEnhancerMain) : Subcommand(
                             Component.text(args.joinToString(separator = " "), NamedTextColor.GREEN) + ":"
                     )
                     horses.map { (horse) ->
-                        CommandTextComponent("#" + horse.horseId, true, NamedTextColor.BLUE, "/${command.name} ${this@handleTeleportCommands.name} #${horse.horseId}")
+                        CommandTextComponent(
+                            "#" + horse.horseId,
+                            true,
+                            NamedTextColor.BLUE,
+                            "/${command.name} ${this@handleTeleportCommands.name} #${horse.horseId}"
+                        )
                     }.forEach(::add)
                 }
 

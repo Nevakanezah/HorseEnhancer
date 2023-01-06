@@ -66,7 +66,7 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
                     Component.empty().color(NamedTextColor.DARK_PURPLE) + CommandTextComponent(
                         "/${command.shortestAlias} ${this@generateSummonHelpTexts.name}",
                         false,
-                        command = "${command.name} ${this@generateSummonHelpTexts.name}"
+                        command = "/${command.name} ${this@generateSummonHelpTexts.name}"
                     ) +
                         if (updateMode) " - Change data & attributes of an existing horse"
                         else " - Summons a horse with specified attributes."
@@ -217,9 +217,10 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
                         if (parents.size > 1) {
                             senderAudience.sendMessage(Component.text("There are more than 1 horse found for the father:", NamedTextColor.DARK_PURPLE))
                             for ((parentData, parentEntity) in parents) {
-                                senderAudience.sendMessage(horseTextComponent(parentData, parentEntity, commandName = commandName, colour = NamedTextColor.BLUE).apply {
-                                    clickEvent(ClickEvent.suggestCommand("/$commandName ${UpdateSubcommand.subcommandName} #${horseData.horseId} -f #${parentData.horseId}"))
-                                })
+                                senderAudience.sendMessage(
+                                    horseTextComponent(parentData, parentEntity, commandName = commandName, colour = NamedTextColor.BLUE)
+                                        .clickEvent(ClickEvent.suggestCommand("/$commandName ${UpdateSubcommand.subcommandName} #${horseData.horseId} -f #${parentData.horseId}"))
+                                )
                             }
                             return@zipWithNext
                         }
@@ -231,9 +232,10 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
                         if (parents.size > 1) {
                             senderAudience.sendMessage(Component.text("There are more than 1 horse found for the mother:", NamedTextColor.DARK_PURPLE))
                             for ((parentData, parentEntity) in parents) {
-                                senderAudience.sendMessage(horseTextComponent(parentData, parentEntity, commandName = commandName, colour = NamedTextColor.BLUE).apply {
-                                    clickEvent(ClickEvent.suggestCommand("/$commandName ${UpdateSubcommand.subcommandName} #${horseData.horseId} -m #${parentData.horseId}"))
-                                })
+                                senderAudience.sendMessage(
+                                    horseTextComponent(parentData, parentEntity, commandName = commandName, colour = NamedTextColor.BLUE)
+                                        .clickEvent(ClickEvent.suggestCommand("/$commandName ${UpdateSubcommand.subcommandName} #${horseData.horseId} -m #${parentData.horseId}"))
+                                )
                             }
                             return@zipWithNext
                         }
@@ -293,7 +295,7 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
                 Component.text("Horse gender required! ", NamedTextColor.RED) +
                     "Use " +
                     CommandTextComponent("/${command.shortestAlias} ${this.name} help", true, colour = NamedTextColor.DARK_PURPLE, command = "/${command.name} ${this.name} help") +
-                    " help for more information."
+                    " for more information."
             )
             return
         }
@@ -337,11 +339,11 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
                 return
             }
             else -> {
-                val message = Component.text("Invalid gender. Valid options include: ", NamedTextColor.RED)
+                var message = Component.text("Invalid gender. Valid options include: ", NamedTextColor.RED)
 
                 val options = listOf("Stallion", "Mare", "Gelding", "Mule", "Jenny", "Jack", "Dam", "Herdsire", "Skeleton", "Zombie")
                 options.forEachIndexed { i, option ->
-                    message.apply {
+                    message = message.apply {
                         append(CommandTextComponent(option, false, NamedTextColor.DARK_PURPLE, "/${command.name} ${this@SummonSubcommand.name} $option"))
                         if (i <= options.size - 2) append(Component.text(", "))
                         if (i == options.size - 2) append(Component.text("and "))

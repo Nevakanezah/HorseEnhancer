@@ -47,4 +47,8 @@ class InspectSubcommand(main: HorseEnhancerMain) : Subcommand(
 
         messages.forEach(main.audience.sender(sender)::sendMessage)
     }
+
+    override suspend fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: List<String>): List<String>? {
+        return emptyList()
+    }
 }

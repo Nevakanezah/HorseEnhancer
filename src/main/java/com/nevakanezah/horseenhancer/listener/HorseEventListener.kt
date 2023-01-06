@@ -117,14 +117,13 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
                 }
 
                 val showAttributes = config.enableInspectorAttributes || player.hasPermission(permissionInspectionAttributes)
-                playerAudience.sendMessage(Component.empty().apply {
-                    HorseUtil.detailedHorseComponent(
-                        horseData = horseData,
-                        horseEntity = horse,
-                        showAttributes = showAttributes,
-                        commandName = main.description.commands.keys.first()
-                    ).forEach(this::append)
-                })
+                val messages = HorseUtil.detailedHorseComponent(
+                    horseData = horseData,
+                    horseEntity = horse,
+                    showAttributes = showAttributes,
+                    commandName = main.description.commands.keys.first(),
+                )
+                messages.forEach(playerAudience::sendMessage)
             }
             InteractMode.GELD -> {
                 if (horse.owner != player) {

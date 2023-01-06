@@ -41,7 +41,13 @@ class UpdateSubcommand(main: HorseEnhancerMain) : Subcommand(
         if (args.isEmpty()) {
             senderAudience.sendMessage(
                 Component.text("Horse name required! ", NamedTextColor.RED) +
-                    "Use " + CommandTextComponent("/${command.shortestAlias} ${this.name} help", true, colour = NamedTextColor.DARK_PURPLE, command = "/${command.name} ${this.name} help") +
+                    "Use " +
+                    CommandTextComponent(
+                        "/${command.shortestAlias} ${this.name} help",
+                        true,
+                        colour = NamedTextColor.DARK_PURPLE,
+                        command = "/${command.name} ${this.name} help"
+                    ) +
                     " help for more information."
             )
             return
@@ -69,9 +75,8 @@ class UpdateSubcommand(main: HorseEnhancerMain) : Subcommand(
                     Component.text(query.joinToString(separator = " "), NamedTextColor.GREEN) + ":"
             )
             horseList.map {
-                it.toTextComponent(commandName = command.name).apply {
-                    clickEvent(ClickEvent.suggestCommand("/${command.name} ${this@UpdateSubcommand.name} #${it.first.horseId} ${remainingArgs.joinCommandArgs()}"))
-                }
+                it.toTextComponent(commandName = command.name)
+                    .clickEvent(ClickEvent.suggestCommand("/${command.name} ${this@UpdateSubcommand.name} #${it.first.horseId} ${remainingArgs.joinCommandArgs()}"))
             }.forEach(senderAudience::sendMessage)
             return
         }
