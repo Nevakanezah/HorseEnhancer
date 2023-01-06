@@ -168,6 +168,7 @@
             <groupId>net.kyori</groupId>
             <artifactId>adventure-platform-bukkit</artifactId>
             <version>4.2.0</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- CSV Reader -->
@@ -175,7 +176,6 @@
             <groupId>com.github.doyaaaaaken</groupId>
             <artifactId>kotlin-csv-jvm</artifactId>
             <version>1.7.0</version>
-            <scope>provided</scope>
         </dependency>
 
         <!-- YAML Parser / Writer -->
@@ -221,6 +221,7 @@
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib-jdk8</artifactId>
             <version>${kotlin.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Coroutines -->
