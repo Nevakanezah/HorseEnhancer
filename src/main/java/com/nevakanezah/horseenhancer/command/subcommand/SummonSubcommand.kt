@@ -339,18 +339,15 @@ class SummonSubcommand(main: HorseEnhancerMain) : Subcommand(
                 return
             }
             else -> {
-                var message = Component.text("Invalid gender. Valid options include: ", NamedTextColor.RED)
-
+                val message = Component.text().content("Invalid gender. Valid options include: ").color(NamedTextColor.RED)
                 val options = listOf("Stallion", "Mare", "Gelding", "Mule", "Jenny", "Jack", "Dam", "Herdsire", "Skeleton", "Zombie")
                 options.forEachIndexed { i, option ->
-                    message = message.apply {
-                        append(CommandTextComponent(option, false, NamedTextColor.DARK_PURPLE, "/${command.name} ${this@SummonSubcommand.name} $option"))
-                        if (i <= options.size - 2) append(Component.text(", "))
-                        if (i == options.size - 2) append(Component.text("and "))
-                    }
+                    message.append(CommandTextComponent(option, false, NamedTextColor.DARK_PURPLE, "/${command.name} ${this@SummonSubcommand.name} $option"))
+                    if (i <= options.size - 2) message.append(Component.text(", "))
+                    if (i == options.size - 2) message.append(Component.text("and "))
                 }
 
-                senderAudience.sendMessage(message)
+                senderAudience.sendMessage(message.build())
                 return
             }
         }
