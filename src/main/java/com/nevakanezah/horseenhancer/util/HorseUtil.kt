@@ -55,13 +55,16 @@ object HorseUtil {
         showAttributes: Boolean = true,
         colour: TextColor = NamedTextColor.DARK_PURPLE,
     ): TextComponent {
-        val text = Component.text().content("#" + horseData.horseId).color(colour)
         val hoverText = Component.empty().color(NamedTextColor.DARK_PURPLE) + "Spe:" + Component.text(DecimalFormat("#.####").format(horseEntity.speed), NamedTextColor.YELLOW) +
             " Jum:" + Component.text(DecimalFormat("#.###").format(horseEntity.jumpStrengthAttribute), NamedTextColor.YELLOW) +
             " HP:" + Component.text(DecimalFormat("#.#").format(horseEntity.maxHealthAttribute), NamedTextColor.YELLOW) +
             "\nPos: " + horseEntity.location.let { location -> Component.text("${location.blockX}, ${location.blockY}, ${location.blockZ}", NamedTextColor.YELLOW) } +
             " in " + Component.text(horseEntity.world.name, NamedTextColor.YELLOW)
+        val text = Component.text()
 
+        @Suppress("DEPRECATION")
+        horseEntity.customName?.also { text.append(Component.text(it, NamedTextColor.GREEN)).append(Component.space()) }
+        text.append(Component.text("#" + horseData.horseId, colour))
 
         if (showAttributes) {
             text.hoverEvent(HoverEvent.showText(hoverText))
