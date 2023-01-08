@@ -136,7 +136,7 @@ object HorseUtil {
             EntityType.MULE -> HorseGender.MULE
             EntityType.SKELETON_HORSE -> HorseGender.UNDEAD
             EntityType.ZOMBIE_HORSE -> HorseGender.UNDEAD
-            else -> HorseGender.UNIQUE
+            else -> HorseGender.UNKNOWN
         }
     }
 

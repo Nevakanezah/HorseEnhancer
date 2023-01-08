@@ -13,6 +13,8 @@ import com.nevakanezah.horseenhancer.util.HorseUtil.speed
 import com.nevakanezah.horseenhancer.util.LocationUtil.bodyLocation
 import com.nevakanezah.horseenhancer.util.SecretHorses
 import com.nevakanezah.horseenhancer.util.TextComponentUtils.plus
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -232,7 +234,9 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
         }
 
         if (config.enableSecretHorses) {
-            // TODO Unique handling?
+            val uniqueHorses = database.getHorsesEntity()
+                .filter { it.first.gender == HorseGender.UNIQUE }
+                .toList()
 
             val speedRange = 0.1125..0.135
             val jumpRange = 0.4..0.46
@@ -247,7 +251,8 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
                     mother.speed in speedRange &&
                     mother.jumpStrengthAttribute in jumpRange &&
                     mother.maxHealthAttribute in maxHealthRangeHorse &&
-                    father.maxHealthAttribute in maxHealthRangeDonkey)
+                    father.maxHealthAttribute in maxHealthRangeDonkey) &&
+                uniqueHorses.none { it.second.type == EntityType.MULE }
             ) {
                 SecretHorses.spawnMaximule(child.location, childData)
                 child.remove()
@@ -260,7 +265,8 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
                 father.inventory.armor?.type == Material.GOLDEN_HORSE_ARMOR &&
                 mother is EntityHorse &&
                 mother.hasPotionEffect(PotionEffectType.INVISIBILITY) &&
-                mother.inventory.armor?.type == Material.GOLDEN_HORSE_ARMOR
+                mother.inventory.armor?.type == Material.GOLDEN_HORSE_ARMOR &&
+                uniqueHorses.none { it.second.type == EntityType.HORSE }
             ) {
                 SecretHorses.spawnInvincible(child.location, childData)
                 child.remove()
