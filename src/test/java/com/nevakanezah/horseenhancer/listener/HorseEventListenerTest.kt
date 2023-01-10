@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package com.nevakanezah.horseenhancer.listener
 
 import be.seeseemelk.mockbukkit.MockBukkit
@@ -11,6 +9,8 @@ import com.nevakanezah.horseenhancer.HorseEnhancerMain
 import com.nevakanezah.horseenhancer.database.SQLiteDatabase
 import com.nevakanezah.horseenhancer.test.mccoroutine.impl.TestMCCoroutineImpl
 import com.nevakanezah.horseenhancer.util.HorseUtil
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -28,6 +28,7 @@ import org.junit.jupiter.api.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
+@Suppress("DEPRECATION")
 internal object HorseEventListenerTest {
     private lateinit var server: ServerMock
     private lateinit var plugin: HorseEnhancerMain
@@ -65,8 +66,11 @@ internal object HorseEventListenerTest {
     }
 
     @AfterEach
-    fun tearDown() {
+    fun tearDown(): Unit = runBlocking {
         player.removeAttachment(playerPermission)
+        horse.remove()
+        database.getHorsesEntity().map { it.second }.collect { it.remove() }
+        database.removeInvalidHorses()
     }
 
     @Test
@@ -117,6 +121,7 @@ internal object HorseEventListenerTest {
         plugin.eventListener.onPlayerInteractHorseEarly(event)
         plugin.eventListener.onPlayerInteractHorse(event)
 
+        assert(event.isCancelled) { "Event should be cancelled" }
         val text = Component.text("You cannot inspect a wild horse.", NamedTextColor.RED)
         player.assertSaid(text)
     }
@@ -138,6 +143,7 @@ internal object HorseEventListenerTest {
         plugin.eventListener.onPlayerInteractHorseEarly(event)
         plugin.eventListener.onPlayerInteractHorse(event)
 
+        assert(event.isCancelled) { "Event should be cancelled" }
         val text = Component.text("This horse is not yet registered.", NamedTextColor.RED)
         player.assertSaid(text)
     }
@@ -164,6 +170,7 @@ internal object HorseEventListenerTest {
         plugin.eventListener.onPlayerInteractHorseEarly(event)
         plugin.eventListener.onPlayerInteractHorse(event)
 
+        assert(event.isCancelled) { "Event should be cancelled" }
         val text = Component.text("That does not belong to you.", NamedTextColor.RED)
         player.assertSaid(text)
     }
@@ -186,6 +193,7 @@ internal object HorseEventListenerTest {
         plugin.eventListener.onPlayerInteractHorseEarly(event)
         plugin.eventListener.onPlayerInteractHorse(event)
 
+        assert(event.isCancelled) { "Event should be cancelled" }
         val horseData = assertNotNull(database.getHorse(horse.uniqueId))
         val expectedMessages = HorseUtil.detailedHorseComponent(
             horseData = horseData,
