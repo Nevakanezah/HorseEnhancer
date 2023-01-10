@@ -242,29 +242,31 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
             val jumpRange = 0.4..0.46
             val maxHealthRangeHorse = 15.0..17.0
             val maxHealthRangeDonkey = 28.5..30.0
-            if ((father is EntityHorse && mother is Donkey &&
-                    father.speed in speedRange &&
-                    father.jumpStrengthAttribute in jumpRange &&
-                    father.maxHealthAttribute in maxHealthRangeHorse &&
-                    mother.maxHealthAttribute in maxHealthRangeDonkey
-                    ) || (mother is EntityHorse && father is Donkey &&
-                    mother.speed in speedRange &&
-                    mother.jumpStrengthAttribute in jumpRange &&
-                    mother.maxHealthAttribute in maxHealthRangeHorse &&
-                    father.maxHealthAttribute in maxHealthRangeDonkey) &&
-                uniqueHorses.none { it.second.type == EntityType.MULE }
-            ) {
-                SecretHorses.spawnMaximule(child.location, childData)
-                child.remove()
-                database.addHorse(childData)
-                return
+            if ((father is EntityHorse && mother is Donkey) || (mother is EntityHorse && father is Donkey)) {
+                val (parentHorse, parentDonkey) = if (father is EntityHorse) {
+                    father to mother
+                } else {
+                    mother to father
+                }
+
+                if (parentHorse.speed in speedRange &&
+                    parentHorse.jumpStrengthAttribute in jumpRange &&
+                    parentHorse.maxHealthAttribute in maxHealthRangeHorse &&
+                    parentDonkey.maxHealthAttribute in maxHealthRangeDonkey &&
+                    uniqueHorses.none { it.second.type == EntityType.MULE }
+                ) {
+                    SecretHorses.spawnMaximule(child.location, childData)
+                    child.remove()
+                    database.addHorse(childData)
+                    return
+                }
             }
 
             if (father is EntityHorse &&
-                father.hasPotionEffect(PotionEffectType.INVISIBILITY) &&
-                father.inventory.armor?.type == Material.GOLDEN_HORSE_ARMOR &&
                 mother is EntityHorse &&
+                father.hasPotionEffect(PotionEffectType.INVISIBILITY) &&
                 mother.hasPotionEffect(PotionEffectType.INVISIBILITY) &&
+                father.inventory.armor?.type == Material.GOLDEN_HORSE_ARMOR &&
                 mother.inventory.armor?.type == Material.GOLDEN_HORSE_ARMOR &&
                 uniqueHorses.none { it.second.type == EntityType.HORSE }
             ) {
