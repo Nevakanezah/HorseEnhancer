@@ -12,5 +12,6 @@ enum class HorseGender {
     UNDEAD, // Zombie or skeleton
     INBRED, // Child of related parents
     CREATIVE, // Creative-mode spawned horses with unique breeding behaviour
-    UNIQUE // Special case, or custom behaviour
+    UNIQUE, // Special case, or custom behaviour
+    UNKNOWN, // Used when all cases failed, the horse gender is unknown
 }

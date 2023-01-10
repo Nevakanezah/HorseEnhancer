@@ -14,6 +14,9 @@ import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 
 object SecretHorses {
+    internal val nameSecretMule = ChatColor.DARK_RED.toString() + "MA" + ChatColor.GOLD + "XI" + ChatColor.DARK_BLUE + "MU" + ChatColor.DARK_GREEN + "LE"
+    internal val nameSecretHorse = ChatColor.DARK_BLUE.toString() + "Invincible"
+
     @JvmOverloads
     fun spawnInbred(location: Location, horseData: Horse = Horse {}): Pair<Horse, AbstractHorse> {
         val world = location.world ?: Bukkit.getWorlds()[0]
@@ -47,7 +50,7 @@ object SecretHorses {
             speed = 0.35
             maxHealthAttribute = 35.0
             jumpStrengthAttribute = 1.18
-            customName = ChatColor.DARK_RED.toString() + "MA" + ChatColor.GOLD + "XI" + ChatColor.DARK_BLUE + "MU" + ChatColor.DARK_GREEN + "LE"
+            customName = nameSecretMule
             @Suppress("DEPRECATION")
             setBreed(false)
             age = 0
@@ -72,7 +75,7 @@ object SecretHorses {
             speed = 0.38
             maxHealthAttribute = 15.0
             jumpStrengthAttribute = 0.565
-            customName = ChatColor.DARK_BLUE.toString() + "Invincible"
+            customName = nameSecretHorse
             @Suppress("DEPRECATION")
             setBreed(false)
             age = 0

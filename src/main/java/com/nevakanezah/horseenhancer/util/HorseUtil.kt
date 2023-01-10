@@ -14,6 +14,7 @@ import net.kyori.adventure.text.event.HoverEvent.ShowEntity
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor
 import org.bukkit.NamespacedKey
+import org.bukkit.attribute.Attributable
 import org.bukkit.attribute.Attribute
 import org.bukkit.entity.AbstractHorse
 import org.bukkit.entity.Entity
@@ -32,7 +33,19 @@ object HorseUtil {
     var AbstractHorse.jumpStrengthAttribute
         get() = this.getAttribute(Attribute.HORSE_JUMP_STRENGTH)!!.baseValue
         set(value) {
-            this.getAttribute(Attribute.HORSE_JUMP_STRENGTH)!!.baseValue = value
+            val attribute = try {
+                this.getAttribute(Attribute.HORSE_JUMP_STRENGTH)
+            } catch (e: Exception) {
+                try {
+                    val methodRegisterAttribute = Attributable::class.java.getDeclaredMethod("registerAttribute", Attribute::class.java)
+                    methodRegisterAttribute.invoke(this, Attribute.HORSE_JUMP_STRENGTH)
+                    this.getAttribute(Attribute.HORSE_JUMP_STRENGTH)
+                } catch (noSuchMethodException: NoSuchMethodException) {
+                    e.addSuppressed(noSuchMethodException)
+                    throw e
+                }
+            }
+            attribute?.baseValue = value
         }
 
     var AbstractHorse.maxHealthAttribute
@@ -136,7 +149,7 @@ object HorseUtil {
             EntityType.MULE -> HorseGender.MULE
             EntityType.SKELETON_HORSE -> HorseGender.UNDEAD
             EntityType.ZOMBIE_HORSE -> HorseGender.UNDEAD
-            else -> HorseGender.UNIQUE
+            else -> HorseGender.UNKNOWN
         }
     }
 
