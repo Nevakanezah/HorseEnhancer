@@ -98,12 +98,12 @@ object HorseUtil {
         showAttributes: Boolean = true,
         commandName: String,
     ) = buildList {
-        fun textParent(parent: String, value: String?) = Component
+        fun textParent(parent: String, value: String?, colour: TextColor = NamedTextColor.GREEN) = Component
             .text("$parent: ")
             .color(NamedTextColor.DARK_PURPLE)
             .append(Component.empty().run {
                 if (value != null) {
-                    append("#$value").color(NamedTextColor.GREEN)
+                    append(value).color(colour)
                 } else {
                     append("---").color(NamedTextColor.BLUE)
                 }
@@ -134,8 +134,14 @@ object HorseUtil {
             if (horseEntity is Llama)
                 add(Component.text("Strength: ", NamedTextColor.DARK_PURPLE) + Component.text(horseEntity.strength.toString(), NamedTextColor.YELLOW) + "/5")
         }
-        add(textParent("Sire", horseData.fatherId))
-        add(textParent("Dam", horseData.motherId))
+
+        if (horseEntity.type == EntityType.SKELETON_HORSE) {
+            add(textParent("Sire", "THUNDER", NamedTextColor.DARK_RED))
+            add(textParent("Dam", "DEATH", NamedTextColor.DARK_RED))
+        } else {
+            add(textParent("Sire", horseData.fatherId?.let { "#$it" }))
+            add(textParent("Dam", horseData.motherId?.let { "#$it" }))
+        }
         add(Component.text(" ${"-".repeat(5 * 2 + 1 + horseData.horseId.length)} ", NamedTextColor.DARK_PURPLE))
     }
 
