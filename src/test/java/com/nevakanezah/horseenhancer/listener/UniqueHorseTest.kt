@@ -15,6 +15,7 @@ import com.nevakanezah.horseenhancer.util.HorseUtil.jumpStrengthAttribute
 import com.nevakanezah.horseenhancer.util.HorseUtil.maxHealthAttribute
 import com.nevakanezah.horseenhancer.util.HorseUtil.speed
 import com.nevakanezah.horseenhancer.util.SecretHorses
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
@@ -78,6 +79,8 @@ object UniqueHorseTest {
         player.removeAttachment(playerPermission)
         database.getHorsesEntity().map { it.second }.collect { it.remove() }
         database.removeInvalidHorses()
+        // Added due to possible race condition from clearing Horse table in database
+        delay(10)
     }
 
     private suspend fun registerHorse(horse: AbstractHorse, genderBias: Double, horseData: Horse = Horse {}): Horse {
