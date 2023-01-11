@@ -287,9 +287,11 @@ class HorseEventListener(private val main: HorseEnhancerMain) : Listener {
             return result
         }
 
-        child.speed = getAttributesFromParents { speed }.coerceIn(0.1125..0.3375)
         child.maxHealthAttribute = getAttributesFromParents { maxHealthAttribute }.coerceIn(15.0..30.0)
-        child.jumpStrengthAttribute = getAttributesFromParents { jumpStrengthAttribute }.coerceIn(0.4..1.0)
+        if (child.type !in arrayOf(EntityType.DONKEY, EntityType.LLAMA)) {
+            child.speed = getAttributesFromParents { speed }.coerceIn(0.1125..0.3375)
+            child.jumpStrengthAttribute = getAttributesFromParents { jumpStrengthAttribute }.coerceIn(0.4..1.0)
+        }
 
         if (child is EntityHorse && father is EntityHorse && mother is EntityHorse) {
             val fatherColourIndex = horseColours.indexOf(father.color)
