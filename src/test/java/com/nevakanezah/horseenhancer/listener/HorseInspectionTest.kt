@@ -29,7 +29,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 @Suppress("DEPRECATION")
-internal object HorseEventListenerTest {
+internal object HorseInspectionTest {
     private lateinit var server: ServerMock
     private lateinit var plugin: HorseEnhancerMain
     private lateinit var database: SQLiteDatabase

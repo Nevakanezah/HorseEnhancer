@@ -134,9 +134,6 @@ object UniqueHorseTest {
             }
             parentDonkey.maxHealthAttribute = 30.0
 
-            player.simulateSneak(true)
-
-            assert(player.isSneaking) { "Player should be sneaking" }
             assert(father.isTamed) { "Father horse should be tamed" }
             assert(mother.isTamed) { "Mother horse should be tamed" }
             assert(father.owner == player) { "Father horse should be owned by current player" }
@@ -192,9 +189,6 @@ object UniqueHorseTest {
             owner = player
         }
 
-        player.simulateSneak(true)
-
-        assert(player.isSneaking) { "Player should be sneaking" }
         assert(father.isTamed) { "Father horse should be tamed" }
         assert(mother.isTamed) { "Mother horse should be tamed" }
         assert(father.owner == player) { "Father horse should be owned by current player" }
@@ -242,9 +236,6 @@ object UniqueHorseTest {
             owner = player
         }
 
-        player.simulateSneak(true)
-
-        assert(player.isSneaking) { "Player should be sneaking" }
         assert(father.isTamed) { "Father horse should be tamed" }
         assert(mother.isTamed) { "Mother horse should be tamed" }
         assert(father.owner == player) { "Father horse should be owned by current player" }
@@ -301,9 +292,6 @@ object UniqueHorseTest {
             owner = player
         }
 
-        player.simulateSneak(true)
-
-        assert(player.isSneaking) { "Player should be sneaking" }
         assert(father.isTamed) { "Father horse should be tamed" }
         assert(mother.isTamed) { "Mother horse should be tamed" }
         assert(father.owner == player) { "Father horse should be owned by current player" }
@@ -380,9 +368,6 @@ object UniqueHorseTest {
             owner = player
         }
 
-        player.simulateSneak(true)
-
-        assert(player.isSneaking) { "Player should be sneaking" }
         assert(father.isTamed) { "Father horse should be tamed" }
         assert(mother.isTamed) { "Mother horse should be tamed" }
         assert(father.owner == player) { "Father horse should be owned by current player" }
