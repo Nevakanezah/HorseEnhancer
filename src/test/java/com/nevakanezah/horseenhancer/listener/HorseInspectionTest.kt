@@ -9,6 +9,7 @@ import com.nevakanezah.horseenhancer.HorseEnhancerMain
 import com.nevakanezah.horseenhancer.database.SQLiteDatabase
 import com.nevakanezah.horseenhancer.test.mccoroutine.impl.TestMCCoroutineImpl
 import com.nevakanezah.horseenhancer.util.HorseUtil
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
@@ -71,6 +72,8 @@ internal object HorseInspectionTest {
         horse.remove()
         database.getHorsesEntity().map { it.second }.collect { it.remove() }
         database.removeInvalidHorses()
+        // Added due to possible race condition from clearing Horse table in database
+        delay(10)
     }
 
     @Test
