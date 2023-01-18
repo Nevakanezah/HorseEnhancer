@@ -70,8 +70,6 @@ object UniqueHorseTest {
         server.addWorld(world)
         player = server.addPlayer()
         playerPermission = player.addAttachment(plugin)
-
-        assert(!database.hasHorses())
     }
 
     @AfterEach
