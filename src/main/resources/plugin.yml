@@ -1,5 +1,5 @@
 name: 'HorseEnhancer'
-version: '2.1.2'
+version: '2.1.3'
 api-version: '1.18'
 main: 'com.nevakanezah.horseenhancer.HorseEnhancerMain'
 authors:
